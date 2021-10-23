@@ -1,0 +1,54 @@
+--- a/Makefile	2021-10-23 02:09:25.000000000 +0800
++++ b/Makefile	2021-10-23 19:26:55.000000000 +0800
+@@ -8,14 +8,7 @@
+ prefix=/usr
+ 
+ LIBDIR=$(prefix)/lib/
+-ifeq ($(shell uname -m), x86_64)
+-	ifneq "$(wildcard $(prefix)/lib64)" ""
+-		LIBDIR="$(prefix)/lib64/"
+-	else ifneq "$(wildcard $(prefix)/lib/x86_64-linux-gnu)" ""
+-		LIBDIR="$(prefix)/lib/x86_64-linux-gnu/"
+-	endif
+-endif
+-PKGCONFIGPATH=$(shell pkg-config --variable pc_path pkg-config | cut -d ':' -f 1)
++
+ ifeq ($(PKGCONFIGPATH), )
+ 	PKGCONFIGPATH=$(LIBDIR)/pkgconfig
+ endif
+@@ -35,6 +28,7 @@
+ 
+ # Variables with default values
+ GPP?=g++
++AR?=ar
+ 
+ # Variables extendable
+ override CFLAGS+=-D_GLIBCXX_USE_C99 -std=c++14 -D__BIG_ENDIAN__=$(BIG_ENDIAN) -D_FILE_OFFSET_BITS=64 -Wall -Wno-reorder -Wno-terminate -Wunknown-pragmas -Wno-unknown-warning-option -Wno-exceptions 
+@@ -42,9 +36,9 @@
+ 	CFLAGS+=-D_GLIBCXX_USE_C99
+ endif
+ override INCLUDES+=-I./include/
+-LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread
++LIBS+=-Wl,-Bdynamic -lcrypto -lssl -lpthread -lz
+ 
+-INCDIR=/usr/include/librtmfp/
++INCDIR=$(prefix)/include/librtmfp/
+ 
+ # Variables fixed
+ ifeq ($(OS),Darwin)
+@@ -55,6 +49,7 @@
+ 	AR=lib/librtmfp.a
+ 	SHARED=-shared
+ endif
++
+ LIB=lib/$(LIBNAME)
+ 
+ # Variables fixed
+@@ -97,6 +92,7 @@
+ install: librtmfp.pc
+ 	-mkdir -p $(INCDIR)
+ 	cp ./include/librtmfp.h $(INCDIR) && chmod 644 $(INCDIR)/librtmfp.h
++	cp ./lib/librtmfp.a $(LIBDIR) && chmod 644 $(LIBDIR)/librtmfp.a
+ 	cp $(LIB) $(LIBDIR) && chmod 755 $(LIBDIR)/$(LIBNAME)
+ 	test -d "$(PKGCONFIGPATH)" || mkdir -p "$(PKGCONFIGPATH)" && cp librtmfp.pc $(PKGCONFIGPATH) && chmod 644 $(PKGCONFIGPATH)/librtmfp.pc
+ 
