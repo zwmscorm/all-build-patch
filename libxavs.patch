@@ -1,0 +1,33 @@
+From 8ca9fc742b06674fd2c61e61b1709b81445ce686 Mon Sep 17 00:00:00 2001
+From: Christopher Degawa <ccom@randomderp.com>
+Date: Fri, 4 Sep 2020 04:13:43 +0000
+Subject: [PATCH] common/i386/predict-c.c: Don't use a list initializer in the
+ declaration
+
+Signed-off-by: Christopher Degawa <ccom@randomderp.com>
+---
+ common/i386/predict-c.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/common/i386/predict-c.c b/common/i386/predict-c.c
+index 6086692..3b6e43a 100644
+--- a/common/i386/predict-c.c
++++ b/common/i386/predict-c.c
+@@ -3,7 +3,7 @@
+  *****************************************************************************
+  * Copyright (C) 2009 xavs project
+  *
+- * Authors: 
++ * Authors:
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -31,7 +31,7 @@ extern void predict_8x8c_dc_left_mmxext( uint8_t *src,int i_neighbor );
+ extern void predict_8x8c_dc_mmxext( uint8_t *src,int i_neighbor );
+ extern void predict_8x8c_v_mmxext( uint8_t *src, int i_neighbor );
+ extern void predict_8x8c_dc_top_mmxext( uint8_t *src,int i_neighbor );
+-extern void predict_8x8c_p_core_mmxext( src, i00, b, c );
++extern void predict_8x8c_p_core_mmxext( uint8_t *src, int i00, int b, int c );
+ extern void predict_8x8_h_mmxext( uint8_t *src, int i_neighbor );
+ extern void predict_8x8_v_mmxext( uint8_t *src, int i_neighbor );
+ extern void predict_8x8_dc_128_mmxext( uint8_t *src, int i_neighbor );
