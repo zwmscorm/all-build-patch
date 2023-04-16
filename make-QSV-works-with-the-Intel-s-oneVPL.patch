@@ -1,0 +1,4156 @@
+From patchwork Wed Jul 20 08:39:54 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36856
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2254952pzb;
+        Wed, 20 Jul 2022 01:40:46 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tFnSfuNnHMnOO8J2tgP5w8CPahMyDDbbPi+ctlfK8PCuEPKj3oUExibqkp/8R8dUWN3tJ/
+X-Received: by 2002:a17:906:6a21:b0:72f:2174:16e6 with SMTP id
+ qw33-20020a1709066a2100b0072f217416e6mr15942650ejc.177.1658306445903;
+        Wed, 20 Jul 2022 01:40:45 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306445; cv=none;
+        d=google.com; s=arc-20160816;
+        b=NlOi4JAF1wrHegPdQly9QZiauXnJa9EUNdFEEP/cwHopGmwc3yXXe3HgLmmYaFVTYS
+         H0lqrOf9GaedIWLl1cZ6cfgNgcuTRR8c4U+iRB9+4RPbu4KkxXRln8elQdKKBGSpdxDO
+         3rzMPawugj9B0h5NTsnq/T0PrNxisrKfmdjVhd+U0KWZP+EkZOZVELc250ln3SOMdODY
+         NWEbMfQshBTfxMoofhResMN3xR+6EhvnTcEtOXtZegYugQqPmARdUnqjBaiIJ4r7W8WA
+         zNKATwp7nQogI8kzH63dNuuSuJ+jONZOlCWzts/HQ9uTOIjCQ4AUtnRwOdWZ8AJQixLY
+         K6Lw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=d6zSs/+v5Prymop10M1Ga6AoUPMQ2OJixCLBvHZVtmo=;
+        b=AO1/mfLWnZ+2EHDvSngrsznmj0hGkKlRLATRUl3n/P2S+Lk0Wqjl55bTIZvdFN7OPG
+         ZBsWJaJA7SFD09f+nRmmlkPBJoc1BME8ota61M/mR1Dk3cnUxzA3WVZxsajVXlhIb13q
+         b/afqFDdmdPxA5Vj0tfP5Id57n1qs+7/ZxILE0WzWaU+iYl1c/ttsfVdpWabIjIiXuN0
+         zW7SFnrDO3w6qKPgbgEeppIhLnOHZxgAp7A6O7oETCz9arHxkrysINBkBmcZ9u30uA/1
+         0NSgwHWGhxdfmqXhusNBiEWJN4CoqKZyYyHYuVqlynW+tYXowX4lwRJLaW8gmQUYIT+4
+         KrFQ==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=RJ9kewSE;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ dd8-20020a1709069b8800b0072f287ec4a4si9945315ejc.85.2022.07.20.01.40.45;
+        Wed, 20 Jul 2022 01:40:45 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=RJ9kewSE;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 4008668B62B;
+	Wed, 20 Jul 2022 11:40:34 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 7613268B444
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:27 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306432; x=1689842432;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=l9FjtGEoBIxqDcw69Ms/n/HEOJmGRo2YxxTBuoFbORs=;
+ b=RJ9kewSEDwA8hjCNL59KxPyK7f9F1Wz0IVpJGkRFc8o/aPFbXUomL6dN
+ uJtxk9aOIA2BYA4B1nPkKxBtF2ltqnfHGK2Xf6xvYghGUPCYLyhwDbGyR
+ BvVDwaDWmRFj7yKx4bDDPAx5ixnSyaTFiR9dZzsBw7KzOGJnwMIZdmEkM
+ kWDIRkf67Z3CmwBBBnwbjkGDLs8iZKlcjs9Ou61WEGuqeTxjxMSHXh955
+ hPw8gwm5uLtWS+K1uxGtwXUJQI65fsQtSQQrrEHTavB7cXqDTsupd2I9C
+ xvvcraaHRa8mJqfJ5/zei0m31pzGRPZcmYT3a5kPXJTRwUev8tSUHCa3k A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412480"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412480"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:23 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574637"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:22 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:54 +0800
+Message-Id: <20220720084006.5033-2-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 01/13] configure: ensure --enable-libmfx
+ uses libmfx 1.x
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: qlgOuPBZH/6r
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+Intel's oneVPL is a successor to MediaSDK, but removed some obsolete
+features of MediaSDK[1], some early versions of oneVPL still use libmfx
+as library name[2]. However some of obsolete features, including OPAQUE
+memory, multi-frame encode, user plugins and LA_EXT rate control mode
+etc, have been enabled in QSV, so user can not use --enable-libmfx to
+enable QSV if using an early version of oneVPL SDK. In order to ensure
+user builds FFmpeg against a right version of libmfx, this patch added a
+check for version < 2.0 and warning message about the used obsolete
+features.
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html
+[2] https://github.com/oneapi-src/oneVPL
+---
+ configure | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/configure b/configure
+index 4888792015..98cbd7a4db 100755
+--- a/configure
++++ b/configure
+@@ -6580,10 +6580,12 @@ enabled liblensfun        && require_pkg_config liblensfun lensfun lensfun.h lf_
+ # Media SDK or Intel Media Server Studio, these don't come with
+ # pkg-config support.  Instead, users should make sure that the build
+ # can find the libraries and headers through other means.
+-enabled libmfx            && { check_pkg_config libmfx "libmfx >= 1.28" "mfx/mfxvideo.h" MFXInit ||
+-                               { require libmfx "mfx/mfxvideo.h mfx/mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
+-                                 { test_cpp_condition mfx/mfxdefs.h "MFX_VERSION >= 1028" || die "ERROR: libmfx version must be >= 1.28"; }  &&
+-                                 warn "using libmfx without pkg-config"; } }
++enabled libmfx            && { { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfx/mfxvideo.h" MFXInit ||
++                                 { require libmfx "mfx/mfxvideo.h mfx/mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
++                                   { test_cpp_condition mfx/mfxdefs.h "MFX_VERSION >= 1028 && MFX_VERSION < 2000" || die "ERROR: libmfx version must be >= 1.28 and < 2.0"; }  &&
++                                   warn "using libmfx without pkg-config"; } } &&
++                                 warn "build FFmpeg against libmfx 1.x, obsolete features of libmfx such as OPAQUE memory,\n"\
++                                   "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"; }
+ 
+ if enabled libmfx; then
+    check_cc MFX_CODEC_VP9 "mfx/mfxvp9.h mfx/mfxstructures.h" "MFX_CODEC_VP9"
+
+From patchwork Wed Jul 20 08:39:55 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36857
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255020pzb;
+        Wed, 20 Jul 2022 01:40:55 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tku8gBKzOAvvfwbnV2m0BidsbVgpIOfuTKqJmXZKLMg0RTnj45PTzCc9gpIeGumNHWNQAK
+X-Received: by 2002:a17:907:1dca:b0:72b:3cb2:81f7 with SMTP id
+ og10-20020a1709071dca00b0072b3cb281f7mr32551431ejc.567.1658306455055;
+        Wed, 20 Jul 2022 01:40:55 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306455; cv=none;
+        d=google.com; s=arc-20160816;
+        b=JmyQ0au593mVeyL82WZo0VCRVi5RG3cMrZ5f8n4UNTHX9XhL4Y68ffJrFhDzCBnKOl
+         pDdgMrfs1sRqLIlw+57+aJo8biNmiJlQe1EXSQG+EMfFV8p1swKsN1Su8/hE0UKz/h+R
+         2+k/9ij10gi64RorRH87lFZXWtoe+aJBM8gEDcdx+3TEjMjGhca5pWp+B0k/V2yAmIcV
+         +h3YifW/nfvexi0Phy+ZePAdtPqeuMS646GY5Vkueuze8YyAlWl/zXFLmQG4Sb2EJUc9
+         tm9RgUOLJHuJy3spoAB0MOjbyf/v3PoKkiE30Svs5aBEPKw1F1fcy8z33j5FGwrHZk7v
+         cy3Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=cK275S6xSRH9u4tFzVz11scLvm+aibONvvOScI9CnEE=;
+        b=vqJgr0YNjO0BMfxo2VxMvHIZcBvCPidajHh+zSw2oHBkhTMxmOiQ1sQ8L5yb1YpKZp
+         X1cSK7CpXS3o++yxDTIIJMC4naCf6OG5piYldXaidNbMNnvne9SHz0nl9/+MDXxzvuDe
+         dLlNKPrHruWlJ2HK7TRG+LaLuT5998+8cdfixEN1/Cp9L0R0JiVPEv3ft5WBY826eRf/
+         XlZOkbaxbsRnEJKkT3EIqHvHOA2iIIil1KLiYpC7OHuWVmUzfiEuVIaen0daigvkiSoV
+         6tG3bDmeRjbYmDEeuJhOgcUnQqoThimcLmNmnQjK9ZplYbEjZIb73iTRCQKMvOsH7Hwx
+         S8Qw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b="dVALEJ7/";
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ t6-20020a056402240600b0043bb7a6477csi2306090eda.527.2022.07.20.01.40.54;
+        Wed, 20 Jul 2022 01:40:55 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b="dVALEJ7/";
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 70F7268B64E;
+	Wed, 20 Jul 2022 11:40:36 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id BF22C68B501
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:28 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306434; x=1689842434;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=ce/iXJB4XlOPZbShT9AF56RCaPwJjzOwQ76nJb5Qvro=;
+ b=dVALEJ7/c4Y2PFyH4cW306A7HKTRjN6+qXKlGSYHuGYRteLy5SiFPCiu
+ eBcJwjeTrEFQKoldThUA4kZab7i8T5RIH/QkwzDiyRJcMMUZemGtZ0MZJ
+ 2GhLBtMxpjm2fBqoj+m1QfSGC8hm7khigjYpfDIfHoJG9Z5RaZ47DceYD
+ tNrqKJo/FFynow4x9Qo/nTEyuyBe0j2lX0wxbIXooJRpH/g4jAI0OIO+A
+ kvVgOVQOoqCwMqVPCN+J16LPcIifYMZW9UiMkd85lL4YKC6fWNZJbWaRg
+ psl+DgsrJgO/64mABnOt/Mn764XyUSx1k9+WHWbp2c7kJiytHxfRZKjW+ w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412486"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412486"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:25 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574643"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:23 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:55 +0800
+Message-Id: <20220720084006.5033-3-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 02/13] configure: fix the check for
+ MFX_CODEC_VP9
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: QQm9fQlCoyxC
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+The data structures for VP9 in mfxvp9.h is wrapped by
+MFX_VERSION_NEXT, which means those data structures have never been used
+in a public release. Actually MFX_CODEC_VP9 and other VP9 stuffs is
+added in mfxstructures.h. In addition, mfxdefs.h is included in
+mfxvp9.h, so we may use the check in this patch for MFX_CODEC_VP9
+
+This is in preparation for oneVPL support because mfxvp9.h is removed
+from oneVPL [1]
+
+[1]: https://github.com/oneapi-src/oneVPL
+---
+ configure | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure b/configure
+index 98cbd7a4db..3b9aa44a95 100755
+--- a/configure
++++ b/configure
+@@ -6588,7 +6588,7 @@ enabled libmfx            && { { check_pkg_config libmfx "libmfx >= 1.28 libmfx
+                                    "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"; }
+ 
+ if enabled libmfx; then
+-   check_cc MFX_CODEC_VP9 "mfx/mfxvp9.h mfx/mfxstructures.h" "MFX_CODEC_VP9"
++   check_cc MFX_CODEC_VP9 "mfx/mfxdefs.h mfx/mfxstructures.h" "MFX_CODEC_VP9"
+ fi
+ 
+ enabled libmodplug        && require_pkg_config libmodplug libmodplug libmodplug/modplug.h ModPlug_Load
+
+From patchwork Wed Jul 20 08:39:56 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36858
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255091pzb;
+        Wed, 20 Jul 2022 01:41:05 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1uMLbalrqGTU6/SR+ayjfRtDbnw+IBJfBPJZmWM49Y0QrwMx134K3YGN8y2ExTled102Jwj
+X-Received: by 2002:aa7:c599:0:b0:43b:b7c8:36ff with SMTP id
+ g25-20020aa7c599000000b0043bb7c836ffmr3185383edq.110.1658306464967;
+        Wed, 20 Jul 2022 01:41:04 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306464; cv=none;
+        d=google.com; s=arc-20160816;
+        b=Dea1/M5yb+2+i0UsT4m5eeFTtcpOq9oyBBJkVM/6WvgUIkHCD5VD5HDWFQgOJpwvwB
+         QPzVTg1+RoyYqO4FyCbsh+GR6M64G/v7Pc+g84YjeHryxbwjjSSjgkDIZI8F6DzRdJlB
+         /xVl14/MyhGVsZWQKMwsv4jIxIP+k2eUn2Rg8P+UbTriys560mlETzczFBRUr1FeIh4T
+         +4AYCMb7LCNWIWAg/EY0p2rVTsVm6mh6wUvQ3gqtUd25k02tJWzOK/eA39Vsonv1c/iW
+         15SP4WqIUxbz4bznTSiNAVFagBAQIiKf8Fyfy5p3ZlT9NTjgWjSHUOxOeN+ELm1/tRgH
+         QlKA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=CAF0ZYNtVJelN8D85r9lHkwANOJqOp98JcxY1zsxGVA=;
+        b=Z4CMzNztZj+VmkCY2+TZdjVeSpK1hNEelkOtbaOMYMwb8mNkhrV+omP/Qa6QQltzwO
+         4zEGEFfAKv66ZnsNy06+jg3QEp6WnZja7ym2LB3jLH2wpP7SPUddYEljgFLj56pmTSHH
+         SJHUKnVQkHXNB9DjEouVq+aU0IS/L7l+qoeQo/6SN5hwRxve/gHTGaXXBdRyC1RHqjuP
+         lnnzXw8UTPvVhtO9+5GW9C/rgQNpj7XJf3HBnCRE+y/bqT++icso6PdJbjytVbBgblyE
+         L0nKjSu/xvpO7tsGkpZy8qVFVoI8K/UH6UKTjEWz9U8Ifw2UH2dxOOtVZpn4qzuWskqt
+         FUnA==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b="lKFD/6D4";
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ c24-20020a170906341800b0072b4cba9671si19349110ejb.186.2022.07.20.01.41.04;
+        Wed, 20 Jul 2022 01:41:04 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b="lKFD/6D4";
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 8684068B7CC;
+	Wed, 20 Jul 2022 11:40:38 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 90D0F68B64E
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:30 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306435; x=1689842435;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=QH9MomYHuFB7k4sNV48XSGNs/LkVsy9oTavRlwijUm0=;
+ b=lKFD/6D4oP25ENAzklmzvR9Kn/PW8sduIa2qW62h7QBqs5Uu+vmKn1v5
+ gQXrgUD+eLmv5onHu0sAVHdxmtU+Xd0g+Hc+YXKkfUCibIMNpneyrvOwB
+ oV6HgVzTLoF41184VV65ggrVieroWqwoQOXrpD3+T14E+a5jZEYbB7MkH
+ 0u996Ndwl+gysYjS52lHk4Z2iC7wPPMq8ohx8aAOCYpl05vzYkGkfDu4a
+ lgh3Jeipx82ZrRe1XN0qWq9qxlNnAAwnkUZDKcao1ugKYVzAx/UceO2QS
+ 4MQqL4a4ier2u/pKXAaeO6Q+3FsJYdBcVerMq3x9PK519rLOvacfS5BJf w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412491"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412491"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:27 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574646"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:25 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:56 +0800
+Message-Id: <20220720084006.5033-4-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 03/13] qsv: remove mfx/ prefix from mfx
+ headers
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: A7gMJi8T6gmH
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+The following Cflags has been added to libmfx.pc, so mfx/ prefix is no
+longer needed when including mfx headers in FFmpeg.
+   Cflags: -I${includedir} -I${includedir}/mfx
+
+Some old versions of libmfx have the following Cflags in libmfx.pc
+   Cflags: -I${includedir}
+
+We may add -I${includedir}/mfx to CFLAGS when running 'configure
+--enable-libmfx' for old versions of libmfx, if so, mfx headers without
+mfx/ prefix can be included too.
+
+If libmfx comes without pkg-config support, we may do a small change to
+the settings of the environment(e.g. set -I/opt/intel/mediasdk/include/mfx
+instead of -I/opt/intel/mediasdk/include to CFLAGS), then the build can
+find the mfx headers without mfx/ prefix
+
+After applying this change, we won't need to change #include for mfx
+headers when mfx headers are installed under a new directory.
+
+This is in preparation for oneVPL support (mfx headers in oneVPL are
+installed under vpl directory)
+---
+ configure                        | 19 ++++++++++++-------
+ libavcodec/qsv.c                 |  8 ++++----
+ libavcodec/qsv.h                 |  2 +-
+ libavcodec/qsv_internal.h        |  2 +-
+ libavcodec/qsvdec.c              |  2 +-
+ libavcodec/qsvenc.c              |  2 +-
+ libavcodec/qsvenc.h              |  2 +-
+ libavcodec/qsvenc_h264.c         |  2 +-
+ libavcodec/qsvenc_hevc.c         |  2 +-
+ libavcodec/qsvenc_jpeg.c         |  2 +-
+ libavcodec/qsvenc_mpeg2.c        |  2 +-
+ libavcodec/qsvenc_vp9.c          |  2 +-
+ libavfilter/qsvvpp.h             |  2 +-
+ libavfilter/vf_deinterlace_qsv.c |  2 +-
+ libavfilter/vf_scale_qsv.c       |  2 +-
+ libavutil/hwcontext_opencl.c     |  2 +-
+ libavutil/hwcontext_qsv.c        |  2 +-
+ libavutil/hwcontext_qsv.h        |  2 +-
+ 18 files changed, 32 insertions(+), 27 deletions(-)
+
+diff --git a/configure b/configure
+index 3b9aa44a95..23ae3eaf7e 100755
+--- a/configure
++++ b/configure
+@@ -6580,15 +6580,20 @@ enabled liblensfun        && require_pkg_config liblensfun lensfun lensfun.h lf_
+ # Media SDK or Intel Media Server Studio, these don't come with
+ # pkg-config support.  Instead, users should make sure that the build
+ # can find the libraries and headers through other means.
+-enabled libmfx            && { { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfx/mfxvideo.h" MFXInit ||
+-                                 { require libmfx "mfx/mfxvideo.h mfx/mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
+-                                   { test_cpp_condition mfx/mfxdefs.h "MFX_VERSION >= 1028 && MFX_VERSION < 2000" || die "ERROR: libmfx version must be >= 1.28 and < 2.0"; }  &&
+-                                   warn "using libmfx without pkg-config"; } } &&
+-                                 warn "build FFmpeg against libmfx 1.x, obsolete features of libmfx such as OPAQUE memory,\n"\
+-                                   "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"; }
++enabled libmfx            && { { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfxvideo.h" MFXInit ||
++# Some old versions of libmfx have the following settings in libmfx.pc:
++#   includedir=/usr/include
++#   Cflags: -I${includedir}
++# So add -I${includedir}/mfx to CFLAGS
++                                 { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfx/mfxvideo.h" MFXInit && add_cflags -I${libmfx_incdir}/mfx; } ||
++                                 { require libmfx "mfxvideo.h mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
++                                   { test_cpp_condition mfxdefs.h "MFX_VERSION >= 1028 && MFX_VERSION < 2000" || die "ERROR: libmfx version must be >= 1.28 and < 2.0"; }  &&
++                                     warn "using libmfx without pkg-config"; } } &&
++                               warn "build FFmpeg against libmfx 1.x, obsolete features of libmfx such as OPAQUE memory,\n"\
++                                    "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"; }
+ 
+ if enabled libmfx; then
+-   check_cc MFX_CODEC_VP9 "mfx/mfxdefs.h mfx/mfxstructures.h" "MFX_CODEC_VP9"
++   check_cc MFX_CODEC_VP9 "mfxdefs.h mfxstructures.h" "MFX_CODEC_VP9"
+ fi
+ 
+ enabled libmodplug        && require_pkg_config libmodplug libmodplug libmodplug/modplug.h ModPlug_Load
+diff --git a/libavcodec/qsv.c b/libavcodec/qsv.c
+index 385b43bb6c..25331ccce8 100644
+--- a/libavcodec/qsv.c
++++ b/libavcodec/qsv.c
+@@ -18,9 +18,9 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
+-#include <mfx/mfxvideo.h>
+-#include <mfx/mfxplugin.h>
+-#include <mfx/mfxjpeg.h>
++#include <mfxvideo.h>
++#include <mfxplugin.h>
++#include <mfxjpeg.h>
+ 
+ #include <stdio.h>
+ #include <string.h>
+@@ -38,7 +38,7 @@
+ 
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
+ 
+-#include "mfx/mfxvp8.h"
++#include "mfxvp8.h"
+ 
+ int ff_qsv_codec_id_to_mfx(enum AVCodecID codec_id)
+ {
+diff --git a/libavcodec/qsv.h b/libavcodec/qsv.h
+index b77158ec26..04ae0d6f34 100644
+--- a/libavcodec/qsv.h
++++ b/libavcodec/qsv.h
+@@ -21,7 +21,7 @@
+ #ifndef AVCODEC_QSV_H
+ #define AVCODEC_QSV_H
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/buffer.h"
+ 
+diff --git a/libavcodec/qsv_internal.h b/libavcodec/qsv_internal.h
+index 8131acdae9..cb1e55ae30 100644
+--- a/libavcodec/qsv_internal.h
++++ b/libavcodec/qsv_internal.h
+@@ -39,7 +39,7 @@
+ #include "libavutil/hwcontext_vaapi.h"
+ #endif
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/frame.h"
+ 
+diff --git a/libavcodec/qsvdec.c b/libavcodec/qsvdec.c
+index d8283b9207..edbe7bcdee 100644
+--- a/libavcodec/qsvdec.c
++++ b/libavcodec/qsvdec.c
+@@ -27,7 +27,7 @@
+ #include <string.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/fifo.h"
+diff --git a/libavcodec/qsvenc.c b/libavcodec/qsvenc.c
+index 7594091a4b..e772bd99b5 100644
+--- a/libavcodec/qsvenc.c
++++ b/libavcodec/qsvenc.c
+@@ -25,7 +25,7 @@
+ 
+ #include <string.h>
+ #include <sys/types.h>
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/hwcontext.h"
+diff --git a/libavcodec/qsvenc.h b/libavcodec/qsvenc.h
+index bffe957526..4cadc38a59 100644
+--- a/libavcodec/qsvenc.h
++++ b/libavcodec/qsvenc.h
+@@ -26,7 +26,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/avutil.h"
+ #include "libavutil/fifo.h"
+diff --git a/libavcodec/qsvenc_h264.c b/libavcodec/qsvenc_h264.c
+index 7756dc1789..64c22852d2 100644
+--- a/libavcodec/qsvenc_h264.c
++++ b/libavcodec/qsvenc_h264.c
+@@ -24,7 +24,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/opt.h"
+diff --git a/libavcodec/qsvenc_hevc.c b/libavcodec/qsvenc_hevc.c
+index b09640365c..1d92b8ec13 100644
+--- a/libavcodec/qsvenc_hevc.c
++++ b/libavcodec/qsvenc_hevc.c
+@@ -22,7 +22,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/opt.h"
+diff --git a/libavcodec/qsvenc_jpeg.c b/libavcodec/qsvenc_jpeg.c
+index c5b6a406a5..582886c7c0 100644
+--- a/libavcodec/qsvenc_jpeg.c
++++ b/libavcodec/qsvenc_jpeg.c
+@@ -22,7 +22,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/opt.h"
+diff --git a/libavcodec/qsvenc_mpeg2.c b/libavcodec/qsvenc_mpeg2.c
+index 7340ece9a9..8ed578c396 100644
+--- a/libavcodec/qsvenc_mpeg2.c
++++ b/libavcodec/qsvenc_mpeg2.c
+@@ -22,7 +22,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/opt.h"
+diff --git a/libavcodec/qsvenc_vp9.c b/libavcodec/qsvenc_vp9.c
+index 3662df1823..7ae392da75 100644
+--- a/libavcodec/qsvenc_vp9.c
++++ b/libavcodec/qsvenc_vp9.c
+@@ -22,7 +22,7 @@
+ #include <stdint.h>
+ #include <sys/types.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/opt.h"
+diff --git a/libavfilter/qsvvpp.h b/libavfilter/qsvvpp.h
+index 4fe07ab1f7..543c58a967 100644
+--- a/libavfilter/qsvvpp.h
++++ b/libavfilter/qsvvpp.h
+@@ -24,7 +24,7 @@
+ #ifndef AVFILTER_QSVVPP_H
+ #define AVFILTER_QSVVPP_H
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "avfilter.h"
+ #include "libavutil/fifo.h"
+diff --git a/libavfilter/vf_deinterlace_qsv.c b/libavfilter/vf_deinterlace_qsv.c
+index fb54d179ed..b8ff3e8339 100644
+--- a/libavfilter/vf_deinterlace_qsv.c
++++ b/libavfilter/vf_deinterlace_qsv.c
+@@ -21,7 +21,7 @@
+  * deinterlace video filter - QSV
+  */
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include <stdio.h>
+ #include <string.h>
+diff --git a/libavfilter/vf_scale_qsv.c b/libavfilter/vf_scale_qsv.c
+index da3c2eca86..af0e85bd03 100644
+--- a/libavfilter/vf_scale_qsv.c
++++ b/libavfilter/vf_scale_qsv.c
+@@ -21,7 +21,7 @@
+  * scale video filter - QSV
+  */
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include <stdio.h>
+ #include <string.h>
+diff --git a/libavutil/hwcontext_opencl.c b/libavutil/hwcontext_opencl.c
+index 32aec7d228..247834aaf6 100644
+--- a/libavutil/hwcontext_opencl.c
++++ b/libavutil/hwcontext_opencl.c
+@@ -47,7 +47,7 @@
+ 
+ #if HAVE_OPENCL_VAAPI_INTEL_MEDIA
+ #if CONFIG_LIBMFX
+-#include <mfx/mfxstructures.h>
++#include <mfxstructures.h>
+ #endif
+ #include <va/va.h>
+ #include <CL/cl_va_api_media_sharing_intel.h>
+diff --git a/libavutil/hwcontext_qsv.c b/libavutil/hwcontext_qsv.c
+index 56dffa1f25..99735f5557 100644
+--- a/libavutil/hwcontext_qsv.c
++++ b/libavutil/hwcontext_qsv.c
+@@ -20,7 +20,7 @@
+ #include <stdint.h>
+ #include <string.h>
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ #include "config.h"
+ 
+diff --git a/libavutil/hwcontext_qsv.h b/libavutil/hwcontext_qsv.h
+index b98d611cfc..42e34d0dda 100644
+--- a/libavutil/hwcontext_qsv.h
++++ b/libavutil/hwcontext_qsv.h
+@@ -19,7 +19,7 @@
+ #ifndef AVUTIL_HWCONTEXT_QSV_H
+ #define AVUTIL_HWCONTEXT_QSV_H
+ 
+-#include <mfx/mfxvideo.h>
++#include <mfxvideo.h>
+ 
+ /**
+  * @file
+
+From patchwork Wed Jul 20 08:39:57 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36859
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255139pzb;
+        Wed, 20 Jul 2022 01:41:13 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1sLlPlC57ZnGbpAEmq6R96ol5wLF5rED+UR9WPUD910yRAZgZ+BOjSuyxdlhYtiQx05wAb/
+X-Received: by 2002:a05:6402:1914:b0:43a:d59b:5e79 with SMTP id
+ e20-20020a056402191400b0043ad59b5e79mr48894896edz.124.1658306473596;
+        Wed, 20 Jul 2022 01:41:13 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306473; cv=none;
+        d=google.com; s=arc-20160816;
+        b=fKDjswal6zrgGiPmCdSPxps2+Xqo/aAql+u1bOsVamzvXkkpto1qaR+gj+HqWRG8fi
+         Bn7QbLF70SfOLmWfO67h7COVKSFTMcRBY6ADtbQYOs5q2L63UwhtBtTURlL20d3Jj0xJ
+         apqJ6ZCtTO2FLde+8sXC8n90CyAwVwAFHsv75HAkzceN5fv2JYykNqv5BtS6Jzc/LXZs
+         C6cV9SrQntzO958dpeIdPhy9iDlZexhGMXXffS66+5RxwrJ/2NjtGddNlIchIbrH0zZI
+         lc7EcnE4di24gD3jgGU12v4YzbntDVCm4JnaKY4ENcLqbLKa8erVYHc55T8BQm2Tazb/
+         eOPA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=AnwdXoqeq+gGMKX3JXkusg4oX3usHY0A/1vG+GLLbGs=;
+        b=Qo1pKjR7ogNzOLSmn3Oeb4fok5PIU+x7L/FaNr911h+cwR4NSrpib36JIRoDSO+uko
+         w4Z77KNo4Zu2PRzoCikNmiBOijPXHbvASNlUdGCKxRcB55XPVw6Ltfj3rE53Vk4BJJSK
+         8kzyV7HKvJov9cCK6hLTGdRoI1kQQ4zmR1xSmEpONEjdgR4+ERq+MIUO3Gj0H/OtNaLe
+         5IrJGb5dwMj9/0xOy/EA0NRJ/HZb1uiVm9xeAAUr7JYnlSpOhK+CuTlLresK4CQdcTqO
+         a4yUX+JdGV9ROz9gh3IEaC2nW5QpiFz5PLdZ9lHa+aLYaJ9kzXwXJOgiFvRTcyabyWHj
+         fi+Q==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=fNKomjWX;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ ce7-20020a170906b24700b0072b3a874867si16170941ejb.874.2022.07.20.01.41.13;
+        Wed, 20 Jul 2022 01:41:13 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=fNKomjWX;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 908ED68B6CC;
+	Wed, 20 Jul 2022 11:40:40 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 61D8668B75C
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:33 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306438; x=1689842438;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=6T3q/ixzmvd37cl6Wq8idExBe1EPyKa3CgsePxX190Q=;
+ b=fNKomjWXPHPPqg1E+4QvT9cSxEylfcCAy1k1+UoTokSyCRmbUXHQ+yal
+ 3d9nQXk+DnjbeXlov6axn+jCbZl4mh3/LE4IdHjZ0GsFFMB+19xsizxnc
+ MuqsLgoqjyRrCuFHs5y5fzX6JqknC3jeQlMeNV6fQyalVMVByqb4idsJ4
+ 9EG9wThutW0lTUb5O/fNebxcm6ZlJ0njgRO/ETieZI1Bp7Bsk47sW+iht
+ WpB9YIoI3RmWF1VI+Gw/V9TVzbfMvgDU79LNDJSq5pRlIsbwWqvK7HQcM
+ 9rixpGvi+cLVFMP7b4HfFevQSpoW9oFAeO7AiapWKCNrHMPQbFPZTgIjR w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412499"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412499"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:28 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574651"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:27 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:57 +0800
+Message-Id: <20220720084006.5033-5-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 04/13] qsv: load user plugin for
+ MFX_VERSION < 2.0
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: cPhmbDw7ilWo
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+User plugin isn't supported for MFX_VERSION >= 2.0[1][2]. This is in
+preparation for oneVPL Support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html#msdk-full-name-feature-removals
+[2] https://github.com/oneapi-src/oneVPL
+---
+ libavcodec/qsv.c          | 8 +++++++-
+ libavcodec/qsv_internal.h | 2 ++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/libavcodec/qsv.c b/libavcodec/qsv.c
+index 25331ccce8..74fc8ff18e 100644
+--- a/libavcodec/qsv.c
++++ b/libavcodec/qsv.c
+@@ -19,7 +19,6 @@
+  */
+ 
+ #include <mfxvideo.h>
+-#include <mfxplugin.h>
+ #include <mfxjpeg.h>
+ 
+ #include <stdio.h>
+@@ -37,9 +36,14 @@
+ #include "qsv_internal.h"
+ 
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
++#define QSV_HAVE_USER_PLUGIN    !QSV_ONEVPL
+ 
+ #include "mfxvp8.h"
+ 
++#if QSV_HAVE_USER_PLUGIN
++#include <mfxplugin.h>
++#endif
++
+ int ff_qsv_codec_id_to_mfx(enum AVCodecID codec_id)
+ {
+     switch (codec_id) {
+@@ -323,6 +327,7 @@ enum AVPictureType ff_qsv_map_pictype(int mfx_pic_type)
+ static int qsv_load_plugins(mfxSession session, const char *load_plugins,
+                             void *logctx)
+ {
++#if QSV_HAVE_USER_PLUGIN
+     if (!load_plugins || !*load_plugins)
+         return 0;
+ 
+@@ -366,6 +371,7 @@ load_plugin_fail:
+         if (err < 0)
+             return err;
+     }
++#endif
+ 
+     return 0;
+ 
+diff --git a/libavcodec/qsv_internal.h b/libavcodec/qsv_internal.h
+index cb1e55ae30..949955bda0 100644
+--- a/libavcodec/qsv_internal.h
++++ b/libavcodec/qsv_internal.h
+@@ -65,6 +65,8 @@
+     ((MFX_VERSION.Major > (MAJOR)) ||                           \
+     (MFX_VERSION.Major == (MAJOR) && MFX_VERSION.Minor >= (MINOR)))
+ 
++#define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
++
+ typedef struct QSVMid {
+     AVBufferRef *hw_frames_ref;
+     mfxHDLPair *handle_pair;
+
+From patchwork Wed Jul 20 08:39:58 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36860
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255213pzb;
+        Wed, 20 Jul 2022 01:41:23 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tIyvVlImZINvcwYpq8mrZd1M09nTdEKiJg5f2HmDqA/qzpUPQ/vn0rBidVLjxK8dQ/s60/
+X-Received: by 2002:a05:6402:3047:b0:43a:9e43:95e5 with SMTP id
+ bs7-20020a056402304700b0043a9e4395e5mr49449535edb.385.1658306483540;
+        Wed, 20 Jul 2022 01:41:23 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306483; cv=none;
+        d=google.com; s=arc-20160816;
+        b=NZOegF4WkC3F7Ps+iKm1JYVGXWrYW2RrD4kiKf9rKyu9sWUUGMEWX9tzzQWLlPqcKA
+         TkpCKqALnRmAnt+uCge8gA6JfHv+J/Cod3Z3HvyHbOWLPgxUTtwEdAfQNRXfk+3duW2W
+         C8SbFxQdP/lUXRnLUv4T/wu4edOYLddXsNON4A+Y1M/hCMKslAaT9d+JMARizOB64P2t
+         lQqlJt4D6D0r+Hit3gYe3oXICXOjFqjzhQsTEpF0kPHjv2y26q0T/N39+euI7g0X5WVK
+         bSEn26QaEi++iIxCnfuZqPlhkoL6zHlvJ2jmDjZuGjkIU1u/hBC7Db8Tsck1xLkRBGWh
+         qBlQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=YppFaNTspxGG1tRHKEBWi5Yq6QkSq30ehXL3zrNRcNk=;
+        b=UsqTnCGgsqG75EWEE5Dl6QGd1OcQKMp4s39zqUc6mttQKa46Gv3K9OYDfB2iJkWHdn
+         M+U8Wld859gSdtWF3QzqAtAWgkQ5X77f3MLURYqlIrM9s8/1AR3TosI83YOwHn5ITiC1
+         uDhWypQ5ybIT+RrJAlqIWl8eGF7e2ZOv9V4VgBnPydD9Emy51XpIdT6tL30Jv78vO+nQ
+         yUq2ZkBXkg+yUl6W0HbvSqwmvnIS4MEF0K56QlfqdZASiD/i5pukE4dRWhvNkgd8jXXS
+         paIwCPzOgtCK5+3gpUWaKQaituJd26IMaz5TKBAABVhQbWar9iukFByhCcrEk92JrNgk
+         6Igw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=MPxR422i;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ q15-20020a056402518f00b0043770f4e810si6532200edd.217.2022.07.20.01.41.23;
+        Wed, 20 Jul 2022 01:41:23 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=MPxR422i;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id A23E268B671;
+	Wed, 20 Jul 2022 11:40:42 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id AA2DA68B6CC
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:34 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306439; x=1689842439;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=fCXU9LuwdZNTLvg5mpefjh4baFlfi5IJNBj3/bSHENs=;
+ b=MPxR422iUmC7+q4IVVNyXnTG0RKEbRhOeY4dmVpsyVPT+fOrkavkfRgD
+ 932Pk3owmpwcmpT4saUE2uz4sQJTW6MQbsKbB/2o6vwDv7nOAWvgtaz4Q
+ vgK+A7GgL6cNkuxnzc9ffTrc5asjbLjpQbA3AHItHqm48iPt3pAly6hQd
+ bmcIXuRBiv7K8B0FPsTzS1jq7wuqKuEQ9fw8bU9OTD2pkAO24gZVPmVRM
+ SmBDDj2WslTc9jvVP53pXbT5eVNTIli4gzFNgnsPiasvOpWa5Fvs/Ty3b
+ X+v5Qv5oIAeAJ2kPU0SliwVE+y7ItYCU5jCSoMB0hXexlgij7PKRVbRNe Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412503"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412503"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:30 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574657"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:29 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:58 +0800
+Message-Id: <20220720084006.5033-6-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 05/13] qsv: build audio related code when
+ MFX_VERSION < 2.0
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: snjnxlHqUsMO
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+Audio isn't supported for MFX_VERSION >= 2.0[1][2]. This is in
+preparation for oneVPL support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html#msdk-full-name-feature-removals
+[2] https://github.com/oneapi-src/oneVPL
+---
+ libavcodec/qsv.c     | 5 +++++
+ libavfilter/qsvvpp.c | 6 ++++++
+ libavfilter/qsvvpp.h | 2 ++
+ 3 files changed, 13 insertions(+)
+
+diff --git a/libavcodec/qsv.c b/libavcodec/qsv.c
+index 74fc8ff18e..cc4b6cfd5d 100644
+--- a/libavcodec/qsv.c
++++ b/libavcodec/qsv.c
+@@ -37,6 +37,7 @@
+ 
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
+ #define QSV_HAVE_USER_PLUGIN    !QSV_ONEVPL
++#define QSV_HAVE_AUDIO          !QSV_ONEVPL
+ 
+ #include "mfxvp8.h"
+ 
+@@ -129,8 +130,10 @@ static const struct {
+     { MFX_ERR_INVALID_VIDEO_PARAM,      AVERROR(EINVAL), "invalid video parameters"             },
+     { MFX_ERR_UNDEFINED_BEHAVIOR,       AVERROR_BUG,     "undefined behavior"                   },
+     { MFX_ERR_DEVICE_FAILED,            AVERROR(EIO),    "device failed"                        },
++#if QSV_HAVE_AUDIO
+     { MFX_ERR_INCOMPATIBLE_AUDIO_PARAM, AVERROR(EINVAL), "incompatible audio parameters"        },
+     { MFX_ERR_INVALID_AUDIO_PARAM,      AVERROR(EINVAL), "invalid audio parameters"             },
++#endif
+ 
+     { MFX_WRN_IN_EXECUTION,             0,               "operation in execution"               },
+     { MFX_WRN_DEVICE_BUSY,              0,               "device busy"                          },
+@@ -140,7 +143,9 @@ static const struct {
+     { MFX_WRN_VALUE_NOT_CHANGED,        0,               "value is saturated"                   },
+     { MFX_WRN_OUT_OF_RANGE,             0,               "value out of range"                   },
+     { MFX_WRN_FILTER_SKIPPED,           0,               "filter skipped"                       },
++#if QSV_HAVE_AUDIO
+     { MFX_WRN_INCOMPATIBLE_AUDIO_PARAM, 0,               "incompatible audio parameters"        },
++#endif
+ };
+ 
+ /**
+diff --git a/libavfilter/qsvvpp.c b/libavfilter/qsvvpp.c
+index 954f882637..3647891d13 100644
+--- a/libavfilter/qsvvpp.c
++++ b/libavfilter/qsvvpp.c
+@@ -38,6 +38,8 @@
+ #define IS_SYSTEM_MEMORY(mode) (mode & MFX_MEMTYPE_SYSTEM_MEMORY)
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
+ 
++#define QSV_HAVE_AUDIO         !QSV_ONEVPL
++
+ static const AVRational default_tb = { 1, 90000 };
+ 
+ typedef struct QSVAsyncFrame {
+@@ -100,8 +102,10 @@ static const struct {
+     { MFX_ERR_INVALID_VIDEO_PARAM,      AVERROR(EINVAL), "invalid video parameters"             },
+     { MFX_ERR_UNDEFINED_BEHAVIOR,       AVERROR_BUG,     "undefined behavior"                   },
+     { MFX_ERR_DEVICE_FAILED,            AVERROR(EIO),    "device failed"                        },
++#if QSV_HAVE_AUDIO
+     { MFX_ERR_INCOMPATIBLE_AUDIO_PARAM, AVERROR(EINVAL), "incompatible audio parameters"        },
+     { MFX_ERR_INVALID_AUDIO_PARAM,      AVERROR(EINVAL), "invalid audio parameters"             },
++#endif
+ 
+     { MFX_WRN_IN_EXECUTION,             0,               "operation in execution"               },
+     { MFX_WRN_DEVICE_BUSY,              0,               "device busy"                          },
+@@ -111,7 +115,9 @@ static const struct {
+     { MFX_WRN_VALUE_NOT_CHANGED,        0,               "value is saturated"                   },
+     { MFX_WRN_OUT_OF_RANGE,             0,               "value out of range"                   },
+     { MFX_WRN_FILTER_SKIPPED,           0,               "filter skipped"                       },
++#if QSV_HAVE_AUDIO
+     { MFX_WRN_INCOMPATIBLE_AUDIO_PARAM, 0,               "incompatible audio parameters"        },
++#endif
+ };
+ 
+ static int qsv_map_error(mfxStatus mfx_err, const char **desc)
+diff --git a/libavfilter/qsvvpp.h b/libavfilter/qsvvpp.h
+index 543c58a967..802abd987d 100644
+--- a/libavfilter/qsvvpp.h
++++ b/libavfilter/qsvvpp.h
+@@ -40,6 +40,8 @@
+     ((MFX_VERSION.Major > (MAJOR)) ||                           \
+     (MFX_VERSION.Major == (MAJOR) && MFX_VERSION.Minor >= (MINOR)))
+ 
++#define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
++
+ typedef struct QSVFrame {
+     AVFrame          *frame;
+     mfxFrameSurface1 surface;
+
+From patchwork Wed Jul 20 08:39:59 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36862
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255363pzb;
+        Wed, 20 Jul 2022 01:41:43 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1trr4rkB5Sr+j7g+JwZQzEUnvJgbPcckdPWzcUw2KeK0lPx2yPZYwAYmo2tGf1aXczkzJz3
+X-Received: by 2002:a17:907:8a0e:b0:72b:9ca3:507 with SMTP id
+ sc14-20020a1709078a0e00b0072b9ca30507mr35249634ejc.477.1658306503044;
+        Wed, 20 Jul 2022 01:41:43 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306503; cv=none;
+        d=google.com; s=arc-20160816;
+        b=ygmWajhztCUkBypmyc54VZLgXQWqmD4ehtXA8IdaExqZFzsjVBMDwhFk4njA/msxLJ
+         36/Ee9Old+leJc1apHtHl5nXwjFzIc5Mr5pd6D/XfP26a1U8JmvZ+i31HX6NInEWzjHS
+         /qc5DdCUnNW0nLGFtGc4bUV4kF9jhAmRvmV650Dg7S/iMi4FoXMxUItzGdj6sBB8/QeK
+         IM1u+w1Rt5hiv62jKoN5V4tubTmI2C/vte6l2llMPboQb0TvflCWuIIPeKPwx0ONqMF6
+         yOQ6+bWBOdsOBLeclyDjGyca6gT2kEid+lmS0zT2m3pMu9AN+SDvuVWlII3dKffDMhGr
+         tPVA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=RHFgSf07JClSF0WvLIe+RGE7OsX3ofsMzvj0MkM9Xa8=;
+        b=StL9k0ebeT8CtZouW3sKPHv/h8x5QoWCzX+4noAHpujTXV7kyPdPExmjRY56MipI3x
+         bEWSzS5ukmyRBT24zhGaHy2iCPvJaJ9QEKgc/jLixnfyIeUCNP6vSD26rlCcVTGve0v9
+         UCmusZG5qkQ7skksEoeXYtoi4isIBfIW6d/6pSkzgmTFUQfdqkA2W7XXpViqAHodh2ZP
+         hnG/2DKtOQOmiibh3FrfXs0xrAR12xnyNAAIT6+vwD08ncTyapEpH9EDMKc+NJDlyq4e
+         8T4TTo/w4z4oYAqIzjDY8Z7AuY6MrFpvbh6TWJV+0v5QLe/5P7ITQe3e1sz6PjDXGI9n
+         7jSg==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=ji+YpJqe;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ nd39-20020a17090762a700b006ff6c9f7081si22030836ejc.738.2022.07.20.01.41.42;
+        Wed, 20 Jul 2022 01:41:43 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=ji+YpJqe;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id C94C468B88E;
+	Wed, 20 Jul 2022 11:40:44 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 7DAE768B800
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:36 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306441; x=1689842441;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=K0hg8uWa+SqFdbpqf4Shkmjy9DmGbZOcxp4gyL+3SSw=;
+ b=ji+YpJqeTx50YBoZxswTKvDWGBRWQqnglPRz6pHRI3kqKlLBF8lkfHUC
+ n9lzcyVGT3MknXGpWvSMdAHvKB7s68jklkTHe8164Dm4KeQzVA8UnCi5y
+ rvi5n1LCx0EwEyjbHoFluGGuma7WRsIWUs0xtsPAMzi6NSzpp5BTYZp7K
+ 4+3xGrHLOZDcHEDG4UPqky1UA39zCu1o2Hkt7ur8SPqgwnAao/y1WJwdE
+ iWHyRhH73zDXeYu/lLCUbKsYE79UBjcHaKIdGKyuMkooTGavqx9sFVBGL
+ 04V05kp7957GUXkupgWkgL7x1J1y8eOhBzJukAHZZou03hBp7Gg/FXzaa g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412510"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412510"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:32 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574666"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:30 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:39:59 +0800
+Message-Id: <20220720084006.5033-7-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 06/13] qsvenc: support multi-frame encode
+ when MFX_VERSION < 2.0
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: g7s+Tc6PCCaD
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+Multi-frame encode isn't supported for MFX_VERSION >= 2.0[1][2]. This is
+in preparation for oneVPL support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html#msdk-full-name-feature-removals
+[2] https://github.com/oneapi-src/oneVPL
+---
+ libavcodec/qsvenc.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libavcodec/qsvenc.h b/libavcodec/qsvenc.h
+index 4cadc38a59..40e2f65eff 100644
+--- a/libavcodec/qsvenc.h
++++ b/libavcodec/qsvenc.h
+@@ -44,7 +44,7 @@
+ #else
+ #define QSV_HAVE_AVBR   0
+ #define QSV_HAVE_VCM    0
+-#define QSV_HAVE_MF     1
++#define QSV_HAVE_MF     !QSV_ONEVPL
+ #endif
+ 
+ #define QSV_COMMON_OPTS \
+
+From patchwork Wed Jul 20 08:40:00 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36867
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255687pzb;
+        Wed, 20 Jul 2022 01:42:30 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1v+JYFfz+rmodSw2bDLn3rBukP8aFX9rqLs+NmmMTfVxHgQV2RQ+4su8NHbA2MdwYfp6EgD
+X-Received: by 2002:a05:6402:11cb:b0:43a:b592:efbb with SMTP id
+ j11-20020a05640211cb00b0043ab592efbbmr49055088edw.157.1658306550353;
+        Wed, 20 Jul 2022 01:42:30 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306550; cv=none;
+        d=google.com; s=arc-20160816;
+        b=xa3xZowg0c1gRqyOp35Zc03yIAT+GPT066Rt7guyE4W+wKJY46cwGPiJ2PG0PYZN3o
+         uAH/5wrtNXDnhCDMV67OJTmzE31ZEbR6iOSD85s19XdavuYZ876CD6TGxg2MNg/Td4Qr
+         8AS7TGbUKFi3gyjBQeRqO+JbO3FqJshm/HL6gZJxOZmnSiQCixpX+etfMyFOCmutx4HA
+         OQr2AsJMMniNGAW6dKbFxzpqgsuhrVPkaDQagsrLccXTP+rVGaj2QwZhRIs7lH5Lk+8L
+         +DauQF5Za56vB6IqlGVJF0M2cq79akx7es6TF6arNNWEpCC8r1dductXKgE81tGtIw96
+         P2Iw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=MbIOcljK7f99D4KEW9+BlxSe3OCfVTffCZTJcvsSll8=;
+        b=JzDXqg1WrB1MQ68HzxAAYVJ/Fl/p3ZjdpuFq3SBjb7rlz3pJTxsPOeddjC9gFzU7t4
+         8GH05M0YocnEPzlE1QRegaPqbtCSLvcjRh3i0m+O+WK93pk5RBuw26PecZ66Yzc4ITMN
+         Z4dplZAvxbGBLFaM2uEs0fNb01nD9JAO2QU4tVc9SyRx6MmTFnRu8xF2doPBBugOoraV
+         PNvstMGctTM12x3dcOvaNM7OFZLdem4GaGRbvgWpaxMCgHM44wY2ysZsePhRKMnz67lx
+         +iOBCYINlDUw4vtjlqH69HUVgX0vE9DSrLiVvLzFegtU5fNZ3Ol2GY+imWN781pn/GTD
+         qWOA==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=TGeZDyri;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ w10-20020a170906480a00b00710e9e0a239si18430582ejq.919.2022.07.20.01.42.29;
+        Wed, 20 Jul 2022 01:42:30 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=TGeZDyri;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 7AB3968B8BE;
+	Wed, 20 Jul 2022 11:40:49 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 4C47E68B852
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:39 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306444; x=1689842444;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=i1mR8QdpsiJbS8YxMGnj/fu2UbCa2e+vA4OG4/kMvIg=;
+ b=TGeZDyricU0pALbsFbuOdqcx3K0+pV4RPWI88Co2fM9SwRx3nzldFT/g
+ I5NFb5jKSUfg2klQ8+BSlDZmIeg6I9WCsknMkeKYItKannwGkcg00IWy3
+ kLK2OzJQSY7naHbyO1gelhZVktwYkwjwfdGeaQIF+Xnwt3JSSYKrvXXi9
+ 4fjPoTVQeufPTzNJFfFDY5Uzq/dptCMlZ/IkG4yPKBddKDltxg4gKu84x
+ WT1s/5li5X2/Hrt7F0orD7lnQtSCHsVFsZdv4qwaY/tYM9tldAlzcsvie
+ i6q9co1qq7ThqyY6oy+kCRLEybtEg8oilkLWJjK2y/nN7IXAFfxPdtRo/ A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412523"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412523"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:34 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574678"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:32 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:00 +0800
+Message-Id: <20220720084006.5033-8-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 07/13] qsvenc: support
+ MFX_RATECONTROL_LA_EXT when MFX_VERSION < 2.0
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: LQ/x+JTnQzxC
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+MFX_RATECONTROL_LA_EXT isn't supported for MFX_VERSION >= 2.0[1][2].
+This is in preparation for oneVPL support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html#msdk-full-name-feature-removals
+[2] https://github.com/oneapi-src/oneVPL
+---
+ libavcodec/qsvenc.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/libavcodec/qsvenc.c b/libavcodec/qsvenc.c
+index e772bd99b5..d3a9a2118e 100644
+--- a/libavcodec/qsvenc.c
++++ b/libavcodec/qsvenc.c
+@@ -141,7 +141,9 @@ static const struct {
+ #if QSV_HAVE_VCM
+     { MFX_RATECONTROL_VCM,     "VCM" },
+ #endif
++#if !QSV_ONEVPL
+     { MFX_RATECONTROL_LA_EXT,  "LA_EXT" },
++#endif
+     { MFX_RATECONTROL_LA_HRD,  "LA_HRD" },
+     { MFX_RATECONTROL_QVBR,    "QVBR" },
+ };
+
+From patchwork Wed Jul 20 08:40:01 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36861
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255322pzb;
+        Wed, 20 Jul 2022 01:41:38 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tRAaz/QanYTSaoysxGLkIcboBOvEVuisNaU7l0LsOo97+dRIg2wyMHlhprxRngGSAwXJks
+X-Received: by 2002:a17:906:8501:b0:711:bf65:2a47 with SMTP id
+ i1-20020a170906850100b00711bf652a47mr35184097ejx.150.1658306497924;
+        Wed, 20 Jul 2022 01:41:37 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306497; cv=none;
+        d=google.com; s=arc-20160816;
+        b=QfjrpvcTywnjng/dMjsFYeh6XlWrdkWRE8X/ytmjmZRS5mBwVGpcOW15wRVpNFIe14
+         hB9cQOyC47xexCQsR9oBqYEaErF2doqL0w8aMAaQGlcQPXxjAxtdGXCulatEGaGo8H71
+         hCRgLB2dVBpv/QtOSHNpGmndEixE/MJksAoMjaDe3trl6SOsR7VDq7YbmVpJ+k1HXAdK
+         tKE00KqutnNgwiprFVXNHrGaTuknwUFlp/VxU4WS7jX2SaAMmbjnXgEXXaWODb6hpjlS
+         ji4m1mpOGXVkOvnPYV/De1Cxz+EgEkI9EfPu6nX/YC54kqNGxNB2bmC2bYhRD/NAgKZK
+         HHYA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=crSmFePEV+cpxUqq8DxGNquAYAgNUlUrgzU3PJenO3o=;
+        b=ICujMrbqjEV38T8u47zBImON1EKwjBe3LEVJ7uIVErfQq/Ph99zLB5dGQBbop1uRyd
+         EAH+UlA9IrG5yALcH8iTy1uO+tF0i5G9kzRgjce9O8CwP72c/2OPkSeDpvruYurbsZvX
+         GN7XcFndA0jKC+MVPxJB6ufK7AJZd8ChVGhsjv8dZtXKmQtmNOLrQ4OFoq3nBDzmVTDu
+         biRdiQAR8dtnt1Dmg0JjStKO5L8jaS4jsLnhmsTF77V6B12ScsNYpwPgsV9SZhT8QqkW
+         hGDOizkTRNPwg2TF8ghKemKqeuDpTx6F7N6VrTaANtokGuDimug0QbsN0E9wlU7euagi
+         hQyw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=Z1aOXayd;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ dr15-20020a170907720f00b0072b9be1e354si2474878ejc.18.2022.07.20.01.41.33;
+        Wed, 20 Jul 2022 01:41:37 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=Z1aOXayd;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id CA06868B641;
+	Wed, 20 Jul 2022 11:40:43 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id A70CF68B671
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:40 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306440; x=1689842440;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=BCghDp/DS5NOhmcfwjvrI+6F5Aln62sWCWKYxuXAdV4=;
+ b=Z1aOXaydSIJLJBiGKj5iU7Ol7Pj1p5anKAKdi6LlUfrQrn+wlEzik17I
+ dOILMGVI4ruxDaX3VKCfqHGyX5PmILKLoVvs2Y2/BO9MvVE1vOsUS32hV
+ +eDNJtP8h9cxAvAQqsN0+FVDfFUBRU6VhFGhp28nGxfIFVDjT6jArDh+f
+ CxJztB2Y9sJ1z+xFs1Ii2amDRRhE4hufsACh95U7h/QJhfPQw45xbaQmv
+ +dTuU/4O0tm8X7jx3nXd/i9u+uyyUV5IZlnKa85/LdfMLioXt5Iu4/Cww
+ 16XJR0WYe36ldC6F9BVK4e+i35T0Mwh66SYgVSDg60V6cIfpvvWe5xr+O A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412531"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412531"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:36 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574692"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:34 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:01 +0800
+Message-Id: <20220720084006.5033-9-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 08/13] qsv: support OPAQUE memory when
+ MFX_VERSION < 2.0
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: nEGdLwN9cP9L
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+OPAQUE memory isn't supported for MFX_VERSION >= 2.0[1][2]. This is in
+preparation for oneVPL support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/VPL_intel_media_sdk.html#msdk-full-name-feature-removals
+[2] https://github.com/oneapi-src/oneVPL
+---
+ libavcodec/qsv.c                 |  4 ++
+ libavcodec/qsv.h                 |  2 +
+ libavcodec/qsv_internal.h        |  1 +
+ libavcodec/qsvdec.c              |  9 ++++
+ libavcodec/qsvenc.c              | 21 +++++++++
+ libavcodec/qsvenc.h              |  2 +
+ libavfilter/qsvvpp.c             | 26 ++++++++++-
+ libavfilter/qsvvpp.h             |  3 ++
+ libavfilter/vf_deinterlace_qsv.c | 57 +++++++++++++-----------
+ libavfilter/vf_scale_qsv.c       | 74 ++++++++++++++++++--------------
+ libavutil/hwcontext_qsv.c        | 56 +++++++++++++++++-------
+ 11 files changed, 181 insertions(+), 74 deletions(-)
+
+diff --git a/libavcodec/qsv.c b/libavcodec/qsv.c
+index cc4b6cfd5d..432675bccf 100644
+--- a/libavcodec/qsv.c
++++ b/libavcodec/qsv.c
+@@ -81,10 +81,14 @@ static const struct {
+ } qsv_iopatterns[] = {
+     {MFX_IOPATTERN_IN_VIDEO_MEMORY,     "input is video memory surface"         },
+     {MFX_IOPATTERN_IN_SYSTEM_MEMORY,    "input is system memory surface"        },
++#if QSV_HAVE_OPAQUE
+     {MFX_IOPATTERN_IN_OPAQUE_MEMORY,    "input is opaque memory surface"        },
++#endif
+     {MFX_IOPATTERN_OUT_VIDEO_MEMORY,    "output is video memory surface"        },
+     {MFX_IOPATTERN_OUT_SYSTEM_MEMORY,   "output is system memory surface"       },
++#if QSV_HAVE_OPAQUE
+     {MFX_IOPATTERN_OUT_OPAQUE_MEMORY,   "output is opaque memory surface"       },
++#endif
+ };
+ 
+ int ff_qsv_print_iopattern(void *log_ctx, int mfx_iopattern,
+diff --git a/libavcodec/qsv.h b/libavcodec/qsv.h
+index 04ae0d6f34..c156b08d07 100644
+--- a/libavcodec/qsv.h
++++ b/libavcodec/qsv.h
+@@ -61,6 +61,8 @@ typedef struct AVQSVContext {
+      * required by the encoder and the user-provided value nb_opaque_surfaces.
+      * The array of the opaque surfaces will be exported to the caller through
+      * the opaque_surfaces field.
++     *
++     * The caller must set this field to zero for oneVPL (MFX_VERSION >= 2.0)
+      */
+     int opaque_alloc;
+ 
+diff --git a/libavcodec/qsv_internal.h b/libavcodec/qsv_internal.h
+index 949955bda0..d52f0dcd15 100644
+--- a/libavcodec/qsv_internal.h
++++ b/libavcodec/qsv_internal.h
+@@ -66,6 +66,7 @@
+     (MFX_VERSION.Major == (MAJOR) && MFX_VERSION.Minor >= (MINOR)))
+ 
+ #define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
++#define QSV_HAVE_OPAQUE  !QSV_ONEVPL
+ 
+ typedef struct QSVMid {
+     AVBufferRef *hw_frames_ref;
+diff --git a/libavcodec/qsvdec.c b/libavcodec/qsvdec.c
+index edbe7bcdee..8b718a08ff 100644
+--- a/libavcodec/qsvdec.c
++++ b/libavcodec/qsvdec.c
+@@ -187,7 +187,11 @@ static int qsv_init_session(AVCodecContext *avctx, QSVContext *q, mfxSession ses
+ 
+         ret = ff_qsv_init_session_frames(avctx, &q->internal_qs.session,
+                                          &q->frames_ctx, q->load_plugins,
++#if QSV_HAVE_OPAQUE
+                                          q->iopattern == MFX_IOPATTERN_OUT_OPAQUE_MEMORY,
++#else
++                                         0,
++#endif
+                                          q->gpu_copy);
+         if (ret < 0) {
+             av_buffer_unref(&q->frames_ctx.hw_frames_ctx);
+@@ -300,10 +304,15 @@ static int qsv_decode_preinit(AVCodecContext *avctx, QSVContext *q, enum AVPixel
+         AVQSVFramesContext *frames_hwctx = frames_ctx->hwctx;
+ 
+         if (!iopattern) {
++#if QSV_HAVE_OPAQUE
+             if (frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME)
+                 iopattern = MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
+             else if (frames_hwctx->frame_type & MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET)
+                 iopattern = MFX_IOPATTERN_OUT_VIDEO_MEMORY;
++#else
++            if (frames_hwctx->frame_type & MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET)
++                iopattern = MFX_IOPATTERN_OUT_VIDEO_MEMORY;
++#endif
+         }
+     }
+ 
+diff --git a/libavcodec/qsvenc.c b/libavcodec/qsvenc.c
+index d3a9a2118e..4831640868 100644
+--- a/libavcodec/qsvenc.c
++++ b/libavcodec/qsvenc.c
+@@ -1176,6 +1176,7 @@ static int qsv_retrieve_enc_params(AVCodecContext *avctx, QSVEncContext *q)
+     return 0;
+ }
+ 
++#if QSV_HAVE_OPAQUE
+ static int qsv_init_opaque_alloc(AVCodecContext *avctx, QSVEncContext *q)
+ {
+     AVQSVContext *qsv = avctx->hwaccel_context;
+@@ -1212,6 +1213,7 @@ static int qsv_init_opaque_alloc(AVCodecContext *avctx, QSVEncContext *q)
+ 
+     return 0;
+ }
++#endif
+ 
+ static int qsvenc_init_session(AVCodecContext *avctx, QSVEncContext *q)
+ {
+@@ -1227,7 +1229,11 @@ static int qsvenc_init_session(AVCodecContext *avctx, QSVEncContext *q)
+ 
+         ret = ff_qsv_init_session_frames(avctx, &q->internal_qs.session,
+                                          &q->frames_ctx, q->load_plugins,
++#if QSV_HAVE_OPAQUE
+                                          q->param.IOPattern == MFX_IOPATTERN_IN_OPAQUE_MEMORY,
++#else
++                                         0,
++#endif
+                                          MFX_GPUCOPY_OFF);
+         if (ret < 0) {
+             av_buffer_unref(&q->frames_ctx.hw_frames_ctx);
+@@ -1279,11 +1285,17 @@ int ff_qsv_enc_init(AVCodecContext *avctx, QSVEncContext *q)
+         AVQSVFramesContext *frames_hwctx = frames_ctx->hwctx;
+ 
+         if (!iopattern) {
++#if QSV_HAVE_OPAQUE
+             if (frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME)
+                 iopattern = MFX_IOPATTERN_IN_OPAQUE_MEMORY;
+             else if (frames_hwctx->frame_type &
+                      (MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET))
+                 iopattern = MFX_IOPATTERN_IN_VIDEO_MEMORY;
++#else
++            if (frames_hwctx->frame_type &
++                (MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET))
++                iopattern = MFX_IOPATTERN_IN_VIDEO_MEMORY;
++#endif
+         }
+     }
+ 
+@@ -1357,9 +1369,16 @@ int ff_qsv_enc_init(AVCodecContext *avctx, QSVEncContext *q)
+                                   "Error querying (IOSurf) the encoding parameters");
+ 
+     if (opaque_alloc) {
++#if QSV_HAVE_OPAQUE
+         ret = qsv_init_opaque_alloc(avctx, q);
+         if (ret < 0)
+             return ret;
++#else
++        av_log(avctx, AV_LOG_ERROR, "User is requesting to allocate OPAQUE surface, "
++               "however libmfx %d.%d doesn't support OPAQUE memory.\n",
++               q->ver.Major, q->ver.Minor);
++        return AVERROR_UNKNOWN;
++#endif
+     }
+ 
+     ret = MFXVideoENCODE_Init(q->session, &q->param);
+@@ -1913,8 +1932,10 @@ int ff_qsv_enc_close(AVCodecContext *avctx, QSVEncContext *q)
+         av_fifo_freep2(&q->async_fifo);
+     }
+ 
++#if QSV_HAVE_OPAQUE
+     av_freep(&q->opaque_surfaces);
+     av_buffer_unref(&q->opaque_alloc_buf);
++#endif
+ 
+     av_freep(&q->extparam);
+ 
+diff --git a/libavcodec/qsvenc.h b/libavcodec/qsvenc.h
+index 40e2f65eff..c2def19658 100644
+--- a/libavcodec/qsvenc.h
++++ b/libavcodec/qsvenc.h
+@@ -137,9 +137,11 @@ typedef struct QSVEncContext {
+     mfxExtHEVCTiles exthevctiles;
+     mfxExtVP9Param  extvp9param;
+ 
++#if QSV_HAVE_OPAQUE
+     mfxExtOpaqueSurfaceAlloc opaque_alloc;
+     mfxFrameSurface1       **opaque_surfaces;
+     AVBufferRef             *opaque_alloc_buf;
++#endif
+ 
+     mfxExtVideoSignalInfo extvsi;
+ 
+diff --git a/libavfilter/qsvvpp.c b/libavfilter/qsvvpp.c
+index 3647891d13..3f984fd5f9 100644
+--- a/libavfilter/qsvvpp.c
++++ b/libavfilter/qsvvpp.c
+@@ -34,7 +34,9 @@
+ 
+ #define IS_VIDEO_MEMORY(mode)  (mode & (MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | \
+                                         MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET))
++#if QSV_HAVE_OPAQUE
+ #define IS_OPAQUE_MEMORY(mode) (mode & MFX_MEMTYPE_OPAQUE_FRAME)
++#endif
+ #define IS_SYSTEM_MEMORY(mode) (mode & MFX_MEMTYPE_SYSTEM_MEMORY)
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
+ 
+@@ -53,10 +55,14 @@ static const struct {
+ } qsv_iopatterns[] = {
+     {MFX_IOPATTERN_IN_VIDEO_MEMORY,     "input is video memory surface"         },
+     {MFX_IOPATTERN_IN_SYSTEM_MEMORY,    "input is system memory surface"        },
++#if QSV_HAVE_OPAQUE
+     {MFX_IOPATTERN_IN_OPAQUE_MEMORY,    "input is opaque memory surface"        },
++#endif
+     {MFX_IOPATTERN_OUT_VIDEO_MEMORY,    "output is video memory surface"        },
+     {MFX_IOPATTERN_OUT_SYSTEM_MEMORY,   "output is system memory surface"       },
++#if QSV_HAVE_OPAQUE
+     {MFX_IOPATTERN_OUT_OPAQUE_MEMORY,   "output is opaque memory surface"       },
++#endif
+ };
+ 
+ int ff_qsvvpp_print_iopattern(void *log_ctx, int mfx_iopattern,
+@@ -536,9 +542,13 @@ static int init_vpp_session(AVFilterContext *avctx, QSVVPPContext *s)
+         if (!out_frames_ref)
+             return AVERROR(ENOMEM);
+ 
++#if QSV_HAVE_OPAQUE
+         s->out_mem_mode = IS_OPAQUE_MEMORY(s->in_mem_mode) ?
+                           MFX_MEMTYPE_OPAQUE_FRAME :
+                           MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | MFX_MEMTYPE_FROM_VPPOUT;
++#else
++        s->out_mem_mode = MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | MFX_MEMTYPE_FROM_VPPOUT;
++#endif
+ 
+         out_frames_ctx   = (AVHWFramesContext *)out_frames_ref->data;
+         out_frames_hwctx = out_frames_ctx->hwctx;
+@@ -624,6 +634,7 @@ static int init_vpp_session(AVFilterContext *avctx, QSVVPPContext *s)
+             return AVERROR_UNKNOWN;
+     }
+ 
++#if QSV_HAVE_OPAQUE
+     if (IS_OPAQUE_MEMORY(s->in_mem_mode) || IS_OPAQUE_MEMORY(s->out_mem_mode)) {
+         s->opaque_alloc.In.Surfaces   = s->surface_ptrs_in;
+         s->opaque_alloc.In.NumSurface = s->nb_surface_ptrs_in;
+@@ -635,7 +646,9 @@ static int init_vpp_session(AVFilterContext *avctx, QSVVPPContext *s)
+ 
+         s->opaque_alloc.Header.BufferId = MFX_EXTBUFF_OPAQUE_SURFACE_ALLOCATION;
+         s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
+-    } else if (IS_VIDEO_MEMORY(s->in_mem_mode) || IS_VIDEO_MEMORY(s->out_mem_mode)) {
++    } else
++#endif
++    if (IS_VIDEO_MEMORY(s->in_mem_mode) || IS_VIDEO_MEMORY(s->out_mem_mode)) {
+         mfxFrameAllocator frame_allocator = {
+             .pthis  = s,
+             .Alloc  = frame_alloc,
+@@ -707,6 +720,7 @@ int ff_qsvvpp_create(AVFilterContext *avctx, QSVVPPContext **vpp, QSVVPPParam *p
+         goto failed;
+     }
+ 
++#if QSV_HAVE_OPAQUE
+     if (IS_OPAQUE_MEMORY(s->in_mem_mode) || IS_OPAQUE_MEMORY(s->out_mem_mode)) {
+         s->nb_ext_buffers = param->num_ext_buf + 1;
+         s->ext_buffers = av_calloc(s->nb_ext_buffers, sizeof(*s->ext_buffers));
+@@ -724,6 +738,10 @@ int ff_qsvvpp_create(AVFilterContext *avctx, QSVVPPContext **vpp, QSVVPPParam *p
+         s->vpp_param.NumExtParam = param->num_ext_buf;
+         s->vpp_param.ExtParam    = param->ext_buf;
+     }
++#else
++    s->vpp_param.NumExtParam = param->num_ext_buf;
++    s->vpp_param.ExtParam    = param->ext_buf;
++#endif
+ 
+     s->got_frame = 0;
+ 
+@@ -741,15 +759,19 @@ int ff_qsvvpp_create(AVFilterContext *avctx, QSVVPPContext **vpp, QSVVPPParam *p
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_IN_SYSTEM_MEMORY;
+     else if (IS_VIDEO_MEMORY(s->in_mem_mode))
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_IN_VIDEO_MEMORY;
++#if QSV_HAVE_OPAQUE
+     else if (IS_OPAQUE_MEMORY(s->in_mem_mode))
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_IN_OPAQUE_MEMORY;
++#endif
+ 
+     if (IS_SYSTEM_MEMORY(s->out_mem_mode))
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
+     else if (IS_VIDEO_MEMORY(s->out_mem_mode))
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_OUT_VIDEO_MEMORY;
++#if QSV_HAVE_OPAQUE
+     else if (IS_OPAQUE_MEMORY(s->out_mem_mode))
+         s->vpp_param.IOPattern |= MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
++#endif
+ 
+     /* Print input memory mode */
+     ff_qsvvpp_print_iopattern(avctx, s->vpp_param.IOPattern & 0x0F, "VPP");
+@@ -788,7 +810,9 @@ int ff_qsvvpp_free(QSVVPPContext **vpp)
+     clear_frame_list(&s->out_frame_list);
+     av_freep(&s->surface_ptrs_in);
+     av_freep(&s->surface_ptrs_out);
++#if QSV_HAVE_OPAQUE
+     av_freep(&s->ext_buffers);
++#endif
+     av_freep(&s->frame_infos);
+     av_fifo_freep2(&s->async_fifo);
+     av_freep(vpp);
+diff --git a/libavfilter/qsvvpp.h b/libavfilter/qsvvpp.h
+index 802abd987d..3e7d56021b 100644
+--- a/libavfilter/qsvvpp.h
++++ b/libavfilter/qsvvpp.h
+@@ -41,6 +41,7 @@
+     (MFX_VERSION.Major == (MAJOR) && MFX_VERSION.Minor >= (MINOR)))
+ 
+ #define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
++#define QSV_HAVE_OPAQUE  !QSV_ONEVPL
+ 
+ typedef struct QSVFrame {
+     AVFrame          *frame;
+@@ -66,10 +67,12 @@ typedef struct QSVVPPContext {
+     mfxFrameSurface1  **surface_ptrs_in;
+     mfxFrameSurface1  **surface_ptrs_out;
+ 
++#if QSV_HAVE_OPAQUE
+     /** MFXVPP extern parameters */
+     mfxExtOpaqueSurfaceAlloc opaque_alloc;
+     mfxExtBuffer      **ext_buffers;
+     int                 nb_ext_buffers;
++#endif
+ 
+     int got_frame;
+     int async_depth;
+diff --git a/libavfilter/vf_deinterlace_qsv.c b/libavfilter/vf_deinterlace_qsv.c
+index b8ff3e8339..50f9156d14 100644
+--- a/libavfilter/vf_deinterlace_qsv.c
++++ b/libavfilter/vf_deinterlace_qsv.c
+@@ -62,7 +62,9 @@ typedef struct QSVDeintContext {
+     mfxFrameSurface1 **surface_ptrs;
+     int             nb_surface_ptrs;
+ 
++#if QSV_HAVE_OPAQUE
+     mfxExtOpaqueSurfaceAlloc opaque_alloc;
++#endif
+     mfxExtVPPDeinterlacing   deint_conf;
+     mfxExtBuffer            *ext_buffers[2];
+     int                      num_ext_buffers;
+@@ -154,9 +156,7 @@ static int init_out_session(AVFilterContext *ctx)
+     AVHWFramesContext    *hw_frames_ctx = (AVHWFramesContext*)s->hw_frames_ctx->data;
+     AVQSVFramesContext *hw_frames_hwctx = hw_frames_ctx->hwctx;
+     AVQSVDeviceContext    *device_hwctx = hw_frames_ctx->device_ctx->hwctx;
+-
+-    int opaque = !!(hw_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
+-
++    int opaque = 0;
+     mfxHDL handle = NULL;
+     mfxHandleType handle_type;
+     mfxVersion ver;
+@@ -165,6 +165,9 @@ static int init_out_session(AVFilterContext *ctx)
+     mfxStatus err;
+     int i;
+ 
++#if QSV_HAVE_OPAQUE
++    opaque = !!(hw_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++#endif
+     /* extract the properties of the "master" session given to us */
+     err = MFXQueryIMPL(device_hwctx->session, &impl);
+     if (err == MFX_ERR_NONE)
+@@ -223,28 +226,7 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+     s->ext_buffers[s->num_ext_buffers++] = (mfxExtBuffer *)&s->deint_conf;
+ 
+-    if (opaque) {
+-        s->surface_ptrs = av_calloc(hw_frames_hwctx->nb_surfaces,
+-                                    sizeof(*s->surface_ptrs));
+-        if (!s->surface_ptrs)
+-            return AVERROR(ENOMEM);
+-        for (i = 0; i < hw_frames_hwctx->nb_surfaces; i++)
+-            s->surface_ptrs[i] = hw_frames_hwctx->surfaces + i;
+-        s->nb_surface_ptrs = hw_frames_hwctx->nb_surfaces;
+-
+-        s->opaque_alloc.In.Surfaces   = s->surface_ptrs;
+-        s->opaque_alloc.In.NumSurface = s->nb_surface_ptrs;
+-        s->opaque_alloc.In.Type       = hw_frames_hwctx->frame_type;
+-
+-        s->opaque_alloc.Out = s->opaque_alloc.In;
+-
+-        s->opaque_alloc.Header.BufferId = MFX_EXTBUFF_OPAQUE_SURFACE_ALLOCATION;
+-        s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
+-
+-        s->ext_buffers[s->num_ext_buffers++] = (mfxExtBuffer *)&s->opaque_alloc;
+-
+-        par.IOPattern = MFX_IOPATTERN_IN_OPAQUE_MEMORY | MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
+-    } else {
++    if (!opaque) {
+         mfxFrameAllocator frame_allocator = {
+             .pthis  = ctx,
+             .Alloc  = frame_alloc,
+@@ -268,6 +250,31 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+         par.IOPattern = MFX_IOPATTERN_IN_VIDEO_MEMORY | MFX_IOPATTERN_OUT_VIDEO_MEMORY;
+     }
++#if QSV_HAVE_OPAQUE
++    else {
++        s->surface_ptrs = av_calloc(hw_frames_hwctx->nb_surfaces,
++                                    sizeof(*s->surface_ptrs));
++
++        if (!s->surface_ptrs)
++            return AVERROR(ENOMEM);
++        for (i = 0; i < hw_frames_hwctx->nb_surfaces; i++)
++            s->surface_ptrs[i] = hw_frames_hwctx->surfaces + i;
++        s->nb_surface_ptrs = hw_frames_hwctx->nb_surfaces;
++
++        s->opaque_alloc.In.Surfaces   = s->surface_ptrs;
++        s->opaque_alloc.In.NumSurface = s->nb_surface_ptrs;
++        s->opaque_alloc.In.Type       = hw_frames_hwctx->frame_type;
++
++        s->opaque_alloc.Out = s->opaque_alloc.In;
++
++        s->opaque_alloc.Header.BufferId = MFX_EXTBUFF_OPAQUE_SURFACE_ALLOCATION;
++        s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
++
++        s->ext_buffers[s->num_ext_buffers++] = (mfxExtBuffer *)&s->opaque_alloc;
++
++        par.IOPattern = MFX_IOPATTERN_IN_OPAQUE_MEMORY | MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
++    }
++#endif
+ 
+     par.ExtParam    = s->ext_buffers;
+     par.NumExtParam = s->num_ext_buffers;
+diff --git a/libavfilter/vf_scale_qsv.c b/libavfilter/vf_scale_qsv.c
+index af0e85bd03..fa0152d785 100644
+--- a/libavfilter/vf_scale_qsv.c
++++ b/libavfilter/vf_scale_qsv.c
+@@ -89,7 +89,9 @@ typedef struct QSVScaleContext {
+     mfxFrameSurface1 **surface_ptrs_out;
+     int             nb_surface_ptrs_out;
+ 
++#if QSV_HAVE_OPAQUE
+     mfxExtOpaqueSurfaceAlloc opaque_alloc;
++#endif
+ 
+     mfxExtVPPScaling         scale_conf;
+     int                      mode;
+@@ -268,7 +270,7 @@ static int init_out_session(AVFilterContext *ctx)
+     AVQSVFramesContext *out_frames_hwctx = out_frames_ctx->hwctx;
+     AVQSVDeviceContext     *device_hwctx = in_frames_ctx->device_ctx->hwctx;
+ 
+-    int opaque = !!(in_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++    int opaque = 0;
+ 
+     mfxHDL handle = NULL;
+     mfxHandleType handle_type;
+@@ -278,6 +280,9 @@ static int init_out_session(AVFilterContext *ctx)
+     mfxStatus err;
+     int i;
+ 
++#if QSV_HAVE_OPAQUE
++    opaque = !!(in_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++#endif
+     s->num_ext_buf = 0;
+ 
+     /* extract the properties of the "master" session given to us */
+@@ -330,38 +335,7 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+     memset(&par, 0, sizeof(par));
+ 
+-    if (opaque) {
+-        s->surface_ptrs_in = av_calloc(in_frames_hwctx->nb_surfaces,
+-                                       sizeof(*s->surface_ptrs_in));
+-        if (!s->surface_ptrs_in)
+-            return AVERROR(ENOMEM);
+-        for (i = 0; i < in_frames_hwctx->nb_surfaces; i++)
+-            s->surface_ptrs_in[i] = in_frames_hwctx->surfaces + i;
+-        s->nb_surface_ptrs_in = in_frames_hwctx->nb_surfaces;
+-
+-        s->surface_ptrs_out = av_calloc(out_frames_hwctx->nb_surfaces,
+-                                        sizeof(*s->surface_ptrs_out));
+-        if (!s->surface_ptrs_out)
+-            return AVERROR(ENOMEM);
+-        for (i = 0; i < out_frames_hwctx->nb_surfaces; i++)
+-            s->surface_ptrs_out[i] = out_frames_hwctx->surfaces + i;
+-        s->nb_surface_ptrs_out = out_frames_hwctx->nb_surfaces;
+-
+-        s->opaque_alloc.In.Surfaces   = s->surface_ptrs_in;
+-        s->opaque_alloc.In.NumSurface = s->nb_surface_ptrs_in;
+-        s->opaque_alloc.In.Type       = in_frames_hwctx->frame_type;
+-
+-        s->opaque_alloc.Out.Surfaces   = s->surface_ptrs_out;
+-        s->opaque_alloc.Out.NumSurface = s->nb_surface_ptrs_out;
+-        s->opaque_alloc.Out.Type       = out_frames_hwctx->frame_type;
+-
+-        s->opaque_alloc.Header.BufferId = MFX_EXTBUFF_OPAQUE_SURFACE_ALLOCATION;
+-        s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
+-
+-        s->ext_buffers[s->num_ext_buf++] = (mfxExtBuffer*)&s->opaque_alloc;
+-
+-        par.IOPattern = MFX_IOPATTERN_IN_OPAQUE_MEMORY | MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
+-    } else {
++    if (!opaque) {
+         mfxFrameAllocator frame_allocator = {
+             .pthis  = ctx,
+             .Alloc  = frame_alloc,
+@@ -393,6 +367,40 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+         par.IOPattern = MFX_IOPATTERN_IN_VIDEO_MEMORY | MFX_IOPATTERN_OUT_VIDEO_MEMORY;
+     }
++#if QSV_HAVE_OPAQUE
++    else {
++        s->surface_ptrs_in = av_calloc(in_frames_hwctx->nb_surfaces,
++                                       sizeof(*s->surface_ptrs_in));
++        if (!s->surface_ptrs_in)
++            return AVERROR(ENOMEM);
++        for (i = 0; i < in_frames_hwctx->nb_surfaces; i++)
++            s->surface_ptrs_in[i] = in_frames_hwctx->surfaces + i;
++        s->nb_surface_ptrs_in = in_frames_hwctx->nb_surfaces;
++
++        s->surface_ptrs_out = av_calloc(out_frames_hwctx->nb_surfaces,
++                                        sizeof(*s->surface_ptrs_out));
++        if (!s->surface_ptrs_out)
++            return AVERROR(ENOMEM);
++        for (i = 0; i < out_frames_hwctx->nb_surfaces; i++)
++            s->surface_ptrs_out[i] = out_frames_hwctx->surfaces + i;
++        s->nb_surface_ptrs_out = out_frames_hwctx->nb_surfaces;
++
++        s->opaque_alloc.In.Surfaces   = s->surface_ptrs_in;
++        s->opaque_alloc.In.NumSurface = s->nb_surface_ptrs_in;
++        s->opaque_alloc.In.Type       = in_frames_hwctx->frame_type;
++
++        s->opaque_alloc.Out.Surfaces   = s->surface_ptrs_out;
++        s->opaque_alloc.Out.NumSurface = s->nb_surface_ptrs_out;
++        s->opaque_alloc.Out.Type       = out_frames_hwctx->frame_type;
++
++        s->opaque_alloc.Header.BufferId = MFX_EXTBUFF_OPAQUE_SURFACE_ALLOCATION;
++        s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
++
++        s->ext_buffers[s->num_ext_buf++] = (mfxExtBuffer*)&s->opaque_alloc;
++
++        par.IOPattern = MFX_IOPATTERN_IN_OPAQUE_MEMORY | MFX_IOPATTERN_OUT_OPAQUE_MEMORY;
++    }
++#endif
+ 
+     memset(&s->scale_conf, 0, sizeof(mfxExtVPPScaling));
+     s->scale_conf.Header.BufferId     = MFX_EXTBUFF_VPP_SCALING;
+diff --git a/libavutil/hwcontext_qsv.c b/libavutil/hwcontext_qsv.c
+index 99735f5557..21a2a805f8 100644
+--- a/libavutil/hwcontext_qsv.c
++++ b/libavutil/hwcontext_qsv.c
+@@ -55,6 +55,8 @@
+      MFX_VERSION_MAJOR == (MAJOR) && MFX_VERSION_MINOR >= (MINOR))
+ 
+ #define MFX_IMPL_VIA_MASK(impl) (0x0f00 & (impl))
++#define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
++#define QSV_HAVE_OPAQUE  !QSV_ONEVPL
+ 
+ typedef struct QSVDevicePriv {
+     AVBufferRef *child_device_ctx;
+@@ -86,11 +88,13 @@ typedef struct QSVFramesContext {
+ 
+     // used in the frame allocator for non-opaque surfaces
+     mfxMemId *mem_ids;
++#if QSV_HAVE_OPAQUE
+     // used in the opaque alloc request for opaque surfaces
+     mfxFrameSurface1 **surface_ptrs;
+ 
+     mfxExtOpaqueSurfaceAlloc opaque_alloc;
+     mfxExtBuffer *ext_buffers[1];
++#endif
+     AVFrame realigned_upload_frame;
+     AVFrame realigned_download_frame;
+ } QSVFramesContext;
+@@ -299,7 +303,9 @@ static void qsv_frames_uninit(AVHWFramesContext *ctx)
+ #endif
+ 
+     av_freep(&s->mem_ids);
++#if QSV_HAVE_OPAQUE
+     av_freep(&s->surface_ptrs);
++#endif
+     av_freep(&s->surfaces_internal);
+     av_freep(&s->handle_pairs_internal);
+     av_frame_unref(&s->realigned_upload_frame);
+@@ -535,11 +541,17 @@ static int qsv_init_pool(AVHWFramesContext *ctx, uint32_t fourcc)
+             return ret;
+     }
+ 
++#if QSV_HAVE_OPAQUE
+     if (!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME)) {
+         ret = qsv_init_child_ctx(ctx);
+         if (ret < 0)
+             return ret;
+     }
++#else
++    ret = qsv_init_child_ctx(ctx);
++    if (ret < 0)
++        return ret;
++#endif
+ 
+     ctx->internal->pool_internal = av_buffer_pool_init2(sizeof(mfxFrameSurface1),
+                                                         ctx, qsv_pool_alloc, NULL);
+@@ -610,10 +622,9 @@ static mfxStatus frame_get_hdl(mfxHDL pthis, mfxMemId mid, mfxHDL *hdl)
+ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+                                      mfxSession *session, int upload)
+ {
+-    QSVFramesContext              *s = ctx->internal->priv;
+     AVQSVFramesContext *frames_hwctx = ctx->hwctx;
+     QSVDeviceContext   *device_priv  = ctx->device_ctx->internal->priv;
+-    int opaque = !!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++    int opaque = 0;
+ 
+     mfxFrameAllocator frame_allocator = {
+         .pthis  = ctx,
+@@ -627,6 +638,11 @@ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+     mfxVideoParam par;
+     mfxStatus err;
+ 
++#if QSV_HAVE_OPAQUE
++    QSVFramesContext              *s = ctx->internal->priv;
++    opaque = !!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++#endif
++
+     err = MFXInit(device_priv->impl, &device_priv->ver, session);
+     if (err != MFX_ERR_NONE) {
+         av_log(ctx, AV_LOG_ERROR, "Error initializing an internal session\n");
+@@ -648,15 +664,18 @@ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+ 
+     memset(&par, 0, sizeof(par));
+ 
+-    if (opaque) {
++    if (!opaque) {
++        par.IOPattern = upload ? MFX_IOPATTERN_OUT_VIDEO_MEMORY :
++                                 MFX_IOPATTERN_IN_VIDEO_MEMORY;
++    }
++#if QSV_HAVE_OPAQUE
++    else {
+         par.ExtParam    = s->ext_buffers;
+         par.NumExtParam = FF_ARRAY_ELEMS(s->ext_buffers);
+         par.IOPattern   = upload ? MFX_IOPATTERN_OUT_OPAQUE_MEMORY :
+                                    MFX_IOPATTERN_IN_OPAQUE_MEMORY;
+-    } else {
+-        par.IOPattern = upload ? MFX_IOPATTERN_OUT_VIDEO_MEMORY :
+-                                 MFX_IOPATTERN_IN_VIDEO_MEMORY;
+     }
++#endif
+ 
+     par.IOPattern |= upload ? MFX_IOPATTERN_IN_SYSTEM_MEMORY :
+                               MFX_IOPATTERN_OUT_SYSTEM_MEMORY;
+@@ -688,11 +707,15 @@ static int qsv_frames_init(AVHWFramesContext *ctx)
+     QSVFramesContext              *s = ctx->internal->priv;
+     AVQSVFramesContext *frames_hwctx = ctx->hwctx;
+ 
+-    int opaque = !!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++    int opaque = 0;
+ 
+     uint32_t fourcc;
+     int i, ret;
+ 
++#if QSV_HAVE_OPAQUE
++    opaque = !!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
++#endif
++
+     fourcc = qsv_fourcc_from_pix_fmt(ctx->sw_format);
+     if (!fourcc) {
+         av_log(ctx, AV_LOG_ERROR, "Unsupported pixel format\n");
+@@ -707,7 +730,16 @@ static int qsv_frames_init(AVHWFramesContext *ctx)
+         }
+     }
+ 
+-    if (opaque) {
++    if (!opaque) {
++        s->mem_ids = av_calloc(frames_hwctx->nb_surfaces, sizeof(*s->mem_ids));
++        if (!s->mem_ids)
++            return AVERROR(ENOMEM);
++
++        for (i = 0; i < frames_hwctx->nb_surfaces; i++)
++            s->mem_ids[i] = frames_hwctx->surfaces[i].Data.MemId;
++    }
++#if QSV_HAVE_OPAQUE
++    else {
+         s->surface_ptrs = av_calloc(frames_hwctx->nb_surfaces,
+                                     sizeof(*s->surface_ptrs));
+         if (!s->surface_ptrs)
+@@ -726,14 +758,8 @@ static int qsv_frames_init(AVHWFramesContext *ctx)
+         s->opaque_alloc.Header.BufferSz = sizeof(s->opaque_alloc);
+ 
+         s->ext_buffers[0] = (mfxExtBuffer*)&s->opaque_alloc;
+-    } else {
+-        s->mem_ids = av_calloc(frames_hwctx->nb_surfaces, sizeof(*s->mem_ids));
+-        if (!s->mem_ids)
+-            return AVERROR(ENOMEM);
+-
+-        for (i = 0; i < frames_hwctx->nb_surfaces; i++)
+-            s->mem_ids[i] = frames_hwctx->surfaces[i].Data.MemId;
+     }
++#endif
+ 
+     s->session_download = NULL;
+     s->session_upload   = NULL;
+
+From patchwork Wed Jul 20 08:40:02 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36863
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255428pzb;
+        Wed, 20 Jul 2022 01:41:52 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tkc6/IotKBqOfk8/l/QVlgLQhrnOwFDm25JKJHv+BlqTCnVuWdUYueoJ9fuZhNgL1rV4jp
+X-Received: by 2002:a17:906:9b14:b0:72b:97ac:c30c with SMTP id
+ eo20-20020a1709069b1400b0072b97acc30cmr35103594ejc.588.1658306511956;
+        Wed, 20 Jul 2022 01:41:51 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306511; cv=none;
+        d=google.com; s=arc-20160816;
+        b=Jg7UVNpyfWQaBi1XzAH8ppLJ1ItsmUk6pUSDIOMVs/gFvD4T7j6pBr5S96H8JKgzF/
+         rCOwS4yBTRk7/+pQUUDIJFxUsATRdGdbS8sJI1htfvTHpUSmjCRzCvSJkhNmfmVQEaY8
+         6PmHAFSImuItVmrPj8eRJpv5DlzfR70bSufSIRxxRYMU2Nh19iEcLBIb1H6sYoPLPSRz
+         Pjh57J4CjefaN61+9x2LDYSFarCKL0P4vh+g9xwyCatn8h5nXyHhpERDhaXLy2xYTtCj
+         LQ1x6l6zahDvqSl45u9PBipBs5W5jnfX2Eq5z5vAtyh2O3kaZTZIvVe/Ypd9sMlpwZsk
+         rWUQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=q6CyBPUyjTbkJrX+c/mAirBpLEYGrfKgsPk+Pxls2pc=;
+        b=Xf8GxT0zgz1Q+VAGzg/jUEdDkApAZ7nen2CSEd7IV71H6ElwWxi2sJNLFQplpulRhg
+         JhLmuyRqyd2y+udyeGjMC0ZSULn1GZmtJGhxeA5Go+Ppr9cgP3q80F0ui6vzQOhV8JsC
+         DIlohOt/L6F6h+5egbjf/FBKNxRMqpFlDKt2aygQfr79XN40G41DY448zEyUUlPwyCsG
+         CLkqkToGhjrxI7bE5Vn7Nfl9jbRBm69X+A1+KReHeua6sUEinpvPRyuYnHiKYFZJckd/
+         bSubJJ3rQrWVhJoSuLu3JimxClYUZtuOr1dRoQOsZuEdetaKRNw6tJ6ZycUsTAtWKNnu
+         wNlQ==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=f9lFXNda;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ n9-20020a05640205c900b0042e1708c0ebsi7678264edx.579.2022.07.20.01.41.51;
+        Wed, 20 Jul 2022 01:41:51 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=f9lFXNda;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id A77AF68B800;
+	Wed, 20 Jul 2022 11:40:45 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id D108868B671
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:41 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306442; x=1689842442;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=Ku82n9OlQ4KwO5Tu9boTbaX37MVWsRzgUq4BFZTYncU=;
+ b=f9lFXNdaVi1UJ6ljSoJDfKyVQQJxDESBC1zs2Z5odQVA/q56V3CbWVkB
+ eSkvekchEYN0Rwn+XMJFCRGMZkBbR+39pqHs2cs2GA1A4IqgEOj7BglAM
+ ZN/hXJaQDTBHGjgUomUBerZyT3nGWTN4Lt18MrI5USl7OSQAAmCY4BU3C
+ Wb5tqjTL7K3QH+EJ7JMSwk/wTlBtsvg5sxVDCccNLcZjzp5Ji6r9YD22J
+ dbQWuZTr7qO0g1k2PismAyCMu0lbJPEKNLKPuIaFdgsgQGYpWI0tiunAT
+ PDK1EXUerx7dv2OLoEZbtMu3B26DsNmBZJv5dlMw+/lkN28bStmcc0H4v A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412542"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412542"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:37 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574703"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:36 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:02 +0800
+Message-Id: <20220720084006.5033-10-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 09/13] lavu/hwcontext_qsv: add loader
+ field to AVQSVDeviceContext
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: PizP1LXLrpSF
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+In oneVPL, a valid mfxLoader handle is needed when creating mfx session
+for decoding, encoding and processing[1], so add loader field to
+AVQSVDeviceContext. User should fill this field before calling
+av_hwdevice_ctx_init() if using oneVPL
+
+This is in preparation for oneVPL support
+
+[1]https://spec.oneapi.io/versions/latest/elements/oneVPL/source/programming_guide/VPL_prg_session.html#onevpl-dispatcher
+---
+ doc/APIchanges            |  3 +++
+ libavutil/hwcontext_qsv.h | 11 +++++++++++
+ libavutil/version.h       |  2 +-
+ 3 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/doc/APIchanges b/doc/APIchanges
+index b3563cd528..265361c979 100644
+--- a/doc/APIchanges
++++ b/doc/APIchanges
+@@ -14,6 +14,9 @@ libavutil:     2021-04-27
+ 
+ API changes, most recent first:
+ 
++2022-07-xx - xxxxxxxxxx - lavu 57.31.100 - hwcontext_qsv.h
++  Add loader field to AVQSVDeviceContext
++
+ 2022-07-xx - xxxxxxxxxx - lavu 57.30.100 - frame.h
+   Add AVFrame.duration, deprecate AVFrame.pkt_duration.
+ 
+diff --git a/libavutil/hwcontext_qsv.h b/libavutil/hwcontext_qsv.h
+index 42e34d0dda..e2dba8ad83 100644
+--- a/libavutil/hwcontext_qsv.h
++++ b/libavutil/hwcontext_qsv.h
+@@ -34,6 +34,17 @@
+  */
+ typedef struct AVQSVDeviceContext {
+     mfxSession session;
++    /**
++     * The mfxLoader handle used for mfxSession creation
++     *
++     * This field is only available for oneVPL user. For non-oneVPL user, this
++     * field must be set to NULL.
++     *
++     * Filled by the user before calling av_hwdevice_ctx_init() and should be
++     * cast to mfxLoader handle. Deallocating the AVHWDeviceContext will always
++     * release this interface.
++     */
++    void *loader;
+ } AVQSVDeviceContext;
+ 
+ /**
+diff --git a/libavutil/version.h b/libavutil/version.h
+index ee4c531b80..e9eefcdb2c 100644
+--- a/libavutil/version.h
++++ b/libavutil/version.h
+@@ -79,7 +79,7 @@
+  */
+ 
+ #define LIBAVUTIL_VERSION_MAJOR  57
+-#define LIBAVUTIL_VERSION_MINOR  30
++#define LIBAVUTIL_VERSION_MINOR  31
+ #define LIBAVUTIL_VERSION_MICRO 100
+ 
+ #define LIBAVUTIL_VERSION_INT   AV_VERSION_INT(LIBAVUTIL_VERSION_MAJOR, \
+
+From patchwork Wed Jul 20 08:40:03 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36864
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255487pzb;
+        Wed, 20 Jul 2022 01:42:02 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1uQQdB9QJt7OeVtp93wprA1LASFWgdMS4nYKgEEID3GCMTBjTssj16GnVoxSBLJI/3Ub3D4
+X-Received: by 2002:a17:907:6087:b0:72f:36ff:7fa2 with SMTP id
+ ht7-20020a170907608700b0072f36ff7fa2mr12312374ejc.162.1658306521929;
+        Wed, 20 Jul 2022 01:42:01 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306521; cv=none;
+        d=google.com; s=arc-20160816;
+        b=k3FEJkVutmQm6A8t71mU9wDhNbuUDXSoChRoVn333Ylxr4TfXs7OepK5IJGOuu7ubM
+         CNgR9H6C1urj4N82j9FbeC6OKvNTySGzgsDz9WendRuCN/4AkaSVYaq3Y/+tzLtx2JOW
+         wNBY+jgTKA0DQYP/E/p9yn2bMZDOptapPGnDqyHcNnbsaxJ+BEvtsVl+vW8zORfnnl30
+         Kfp2VWfC3zV4/03nXdIa2owYOv9pZXuEEMmVA8I/+ybASgHDDiMHIgoCz/55XwT7e/5u
+         xcwg8aRyI3Q+TVSr8RtcFpRSK9mfk+PspSY03PhY0lcoPDQWqARAk7QIgPzuttkZYa1N
+         n1cw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=5aOierF8Kwm2xPIYVTN2hCuKeZT7Kpbpccw3uy5sQlU=;
+        b=sZ8nFy7ta8nQiB1zCQ2vHM798/mNq0KoIij6FPuRb4XhuzCjXmfYbN9VMg/LxmDx8D
+         jny3ej5FdNlEaUsPnEqhuRKuzIxVcDxxYVrXYCpHCVpF+T1lo6Eqcul4VETBdSPwIDgm
+         gSJBMLCTdI6G/5fVDbsUpPZz7ASDqyY0QM5KD2nFiBLap3mYNJK0+d+Nkw7wT9WVnJFu
+         KxumIZ3B9DWqPY7ZubmI6a34cOkEs61ZcmguHoCIVOuUAC2pXIJC41WO8UAYV5us/ZVP
+         ahPgNVdtLWLxIFescc8vQqWpdVMPqP3kYFgTQpBzpNkro1e4Tl0031aFHCwzpdtPdiV0
+         5mcw==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=Ft3uRSRC;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ g13-20020a1709067c4d00b0072b5ce83732si18879123ejp.419.2022.07.20.01.42.00;
+        Wed, 20 Jul 2022 01:42:01 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=Ft3uRSRC;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 7B73868B8A4;
+	Wed, 20 Jul 2022 11:40:46 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 7B9B568B830
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:42 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306442; x=1689842442;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=bdERqbzBm58NOUykd6TDLISvCEnlHGlUJ/+nsMSnciE=;
+ b=Ft3uRSRCP+9JW4qmqRiAgV8kWhSYZnViorrBSMmdZeHvKcGvzDkEMg2x
+ E6FnL337QgEn38SFgR5+aS7F5aDQNSf0XoPRVg6cPjtPDdtyi93MjCNa3
+ DAot2JO9wXL475rIQBlNcv6ydWCX9VvKOW+qkw0u4q4R83+cgGdb+vRSt
+ W/mLVeM7Ry0BijdKJ6voyaHQUvfvpmU6R+qA6aWypQr1yBCW94BJxsA8P
+ W6UqVHHuGkYAm2T8CBx+gR4jBHPIJLKgwLscsOl+1BHdeDLqa3UT17HQi
+ WjXcJNNL/NugTXDR1Ju3IaWRLoOH5e3WDuHEf9U6yzHqd81KfGsENJA0m Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412551"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412551"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:39 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574714"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:37 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:03 +0800
+Message-Id: <20220720084006.5033-11-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 10/13] lavu/hwcontext_qsv: make qsv
+ hwdevice works with oneVPL
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>, galinart <artem.galin@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: 7zMFC4am7Fp3
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+In oneVPL, MFXLoad() and MFXCreateSession() are required to create a
+workable mfx session[1]
+
+Add config filters for D3D9/D3D11 session (galinart)
+
+The default device is changed to d3d11va for oneVPL when both d3d11va
+and dxva2 are enabled on Microsoft Windows
+
+This is in preparation for oneVPL support
+
+[1] https://spec.oneapi.io/versions/latest/elements/oneVPL/source/programming_guide/VPL_prg_session.html#onevpl-dispatcher
+
+Co-authored-by: galinart <artem.galin@intel.com>
+Signed-off-by: galinart <artem.galin@intel.com>
+Signed-off-by: Haihao Xiang <haihao.xiang@intel.com>
+---
+ libavutil/hwcontext_qsv.c | 531 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 493 insertions(+), 38 deletions(-)
+
+diff --git a/libavutil/hwcontext_qsv.c b/libavutil/hwcontext_qsv.c
+index 21a2a805f8..90b7988dec 100644
+--- a/libavutil/hwcontext_qsv.c
++++ b/libavutil/hwcontext_qsv.c
+@@ -49,6 +49,7 @@
+ #include "pixdesc.h"
+ #include "time.h"
+ #include "imgutils.h"
++#include "avassert.h"
+ 
+ #define QSV_VERSION_ATLEAST(MAJOR, MINOR)   \
+     (MFX_VERSION_MAJOR > (MAJOR) ||         \
+@@ -58,6 +59,12 @@
+ #define QSV_ONEVPL       QSV_VERSION_ATLEAST(2, 0)
+ #define QSV_HAVE_OPAQUE  !QSV_ONEVPL
+ 
++#if QSV_ONEVPL
++#include <mfxdispatcher.h>
++#else
++#define MFXUnload(a) do { } while(0)
++#endif
++
+ typedef struct QSVDevicePriv {
+     AVBufferRef *child_device_ctx;
+ } QSVDevicePriv;
+@@ -619,6 +626,436 @@ static mfxStatus frame_get_hdl(mfxHDL pthis, mfxMemId mid, mfxHDL *hdl)
+     return MFX_ERR_NONE;
+ }
+ 
++#if QSV_ONEVPL
++
++static int qsv_d3d11_update_config(void *ctx, mfxHDL handle, mfxConfig cfg)
++{
++#if CONFIG_D3D11VA
++    mfxStatus sts;
++    IDXGIAdapter *pDXGIAdapter;
++    DXGI_ADAPTER_DESC adapterDesc;
++    IDXGIDevice *pDXGIDevice = NULL;
++    HRESULT hr;
++    ID3D11Device *device = handle;
++    mfxVariant impl_value;
++
++    hr = ID3D11Device_QueryInterface(device, &IID_IDXGIDevice, (void**)&pDXGIDevice);
++    if (SUCCEEDED(hr)) {
++        hr = IDXGIDevice_GetAdapter(pDXGIDevice, &pDXGIAdapter);
++        if (FAILED(hr)) {
++            av_log(ctx, AV_LOG_ERROR, "Error IDXGIDevice_GetAdapter %d\n", hr);
++            goto fail;
++        }
++
++        hr = IDXGIAdapter_GetDesc(pDXGIAdapter, &adapterDesc);
++        if (FAILED(hr)) {
++            av_log(ctx, AV_LOG_ERROR, "Error IDXGIAdapter_GetDesc %d\n", hr);
++            goto fail;
++        }
++    } else {
++        av_log(ctx, AV_LOG_ERROR, "Error ID3D11Device_QueryInterface %d\n", hr);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U16;
++    impl_value.Data.U16 = adapterDesc.DeviceId;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxExtendedDeviceId.DeviceID", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "DeviceID property: %d.\n", sts);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_PTR;
++    impl_value.Data.Ptr = &adapterDesc.AdapterLuid;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxExtendedDeviceId.DeviceLUID", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "DeviceLUID property: %d.\n", sts);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    impl_value.Data.U32 = 0x0001;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxExtendedDeviceId.LUIDDeviceNodeMask", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "LUIDDeviceNodeMask property: %d.\n", sts);
++        goto fail;
++    }
++
++    return 0;
++
++fail:
++#endif
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_d3d9_update_config(void *ctx, mfxHDL handle, mfxConfig cfg)
++{
++    int ret = AVERROR_UNKNOWN;
++#if CONFIG_DXVA2
++    mfxStatus sts;
++    IDirect3DDeviceManager9* devmgr = handle;
++    IDirect3DDevice9Ex *device = NULL;
++    HANDLE device_handle = 0;
++    IDirect3D9Ex *d3d9ex = NULL;
++    LUID luid;
++    D3DDEVICE_CREATION_PARAMETERS params;
++    HRESULT hr;
++    mfxVariant impl_value;
++
++    hr = IDirect3DDeviceManager9_OpenDeviceHandle(devmgr, &device_handle);
++    if (FAILED(hr)) {
++        av_log(ctx, AV_LOG_ERROR, "Error OpenDeviceHandle %d\n", hr);
++        goto fail;
++    }
++
++    hr = IDirect3DDeviceManager9_LockDevice(devmgr, device_handle, &device, TRUE);
++    if (FAILED(hr)) {
++        av_log(ctx, AV_LOG_ERROR, "Error LockDevice %d\n", hr);
++        goto fail;
++    }
++
++    hr = IDirect3DDevice9Ex_GetCreationParameters(device, &params);
++    if (FAILED(hr)) {
++        av_log(ctx, AV_LOG_ERROR, "Error IDirect3DDevice9_GetCreationParameters %d\n", hr);
++        goto unlock;
++    }
++
++    hr = IDirect3DDevice9Ex_GetDirect3D(device, &d3d9ex);
++    if (FAILED(hr)) {
++        av_log(ctx, AV_LOG_ERROR, "Error IDirect3DDevice9Ex_GetAdapterLUID %d\n", hr);
++        goto unlock;
++    }
++
++    hr = IDirect3D9Ex_GetAdapterLUID(d3d9ex, params.AdapterOrdinal, &luid);
++    if (FAILED(hr)) {
++        av_log(ctx, AV_LOG_ERROR, "Error IDirect3DDevice9Ex_GetAdapterLUID %d\n", hr);
++        goto unlock;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_PTR;
++    impl_value.Data.Ptr = &luid;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxExtendedDeviceId.DeviceLUID", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "DeviceLUID property: %d.\n", sts);
++        goto unlock;
++    }
++
++    ret = 0;
++
++unlock:
++    IDirect3DDeviceManager9_UnlockDevice(devmgr, device_handle, FALSE);
++fail:
++#endif
++    return ret;
++}
++
++static int qsv_va_update_config(void *ctx, mfxHDL handle, mfxConfig cfg)
++{
++#if CONFIG_VAAPI
++#if VA_CHECK_VERSION(1, 5, 0)
++#define LOCAL_VADISPLAYPCIID VADisplayPCIID
++#else
++#define LOCAL_VADISPLAYPCIID 21
++#endif
++    mfxStatus sts;
++    VADisplay dpy = handle;
++    VAStatus vas;
++    VADisplayAttribute attr = {
++        .type = LOCAL_VADISPLAYPCIID
++    };
++    mfxVariant impl_value;
++
++    vas = vaGetDisplayAttributes(dpy, &attr, 1);
++    if (vas == VA_STATUS_SUCCESS && attr.flags != VA_DISPLAY_ATTRIB_NOT_SUPPORTED) {
++        impl_value.Type = MFX_VARIANT_TYPE_U16;
++        impl_value.Data.U16 = (attr.value & 0xFFFF);
++        sts = MFXSetConfigFilterProperty(cfg,
++                                         (const mfxU8 *)"mfxExtendedDeviceId.DeviceID", impl_value);
++        if (sts != MFX_ERR_NONE) {
++            av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++                   "DeviceID property: %d.\n", sts);
++            goto fail;
++        }
++    } else {
++        av_log(ctx, AV_LOG_ERROR, "Failed to get device id from the driver. Please "
++               "consider to upgrade the driver to support VA-API 1.5.0. \n");
++        goto fail;
++    }
++
++    return 0;
++
++fail:
++#endif
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_new_mfx_loader(void *ctx,
++                              mfxHDL handle,
++                              mfxHandleType handle_type,
++                              mfxIMPL implementation,
++                              mfxVersion *pver,
++                              void **ploader)
++{
++    mfxStatus sts;
++    mfxLoader loader = NULL;
++    mfxConfig cfg;
++    mfxVariant impl_value;
++
++    *ploader = NULL;
++    loader = MFXLoad();
++    if (!loader) {
++        av_log(ctx, AV_LOG_ERROR, "Error creating a MFX loader\n");
++        goto fail;
++    }
++
++    /* Create configurations for implementation */
++    cfg = MFXCreateConfig(loader);
++    if (!cfg) {
++        av_log(ctx, AV_LOG_ERROR, "Error creating a MFX configuration\n");
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    impl_value.Data.U32 = (implementation == MFX_IMPL_SOFTWARE) ?
++        MFX_IMPL_TYPE_SOFTWARE : MFX_IMPL_TYPE_HARDWARE;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxImplDescription.Impl", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration "
++               "property: %d.\n", sts);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    impl_value.Data.U32 = pver->Version;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxImplDescription.ApiVersion.Version",
++                                     impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration "
++               "property: %d.\n", sts);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U16;
++    impl_value.Data.U16 = 0x8086; // Intel device only
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxExtendedDeviceId.VendorID", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "VendorID property: %d.\n", sts);
++        goto fail;
++    }
++
++    if (MFX_HANDLE_VA_DISPLAY == handle_type) {
++        if (handle && qsv_va_update_config(ctx, handle, cfg))
++            goto fail;
++
++        impl_value.Data.U32 = MFX_ACCEL_MODE_VIA_VAAPI;
++    } else if (MFX_HANDLE_D3D9_DEVICE_MANAGER == handle_type) {
++        if (handle && qsv_d3d9_update_config(ctx, handle, cfg))
++            goto fail;
++
++        impl_value.Data.U32 = MFX_ACCEL_MODE_VIA_D3D9;
++    } else {
++        if (handle && qsv_d3d11_update_config(ctx, handle, cfg))
++            goto fail;
++
++        impl_value.Data.U32 = MFX_ACCEL_MODE_VIA_D3D11;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxImplDescription.AccelerationMode", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error adding a MFX configuration"
++               "AccelerationMode property: %d.\n", sts);
++        goto fail;
++    }
++
++    *ploader = loader;
++
++    return 0;
++
++fail:
++    if (loader)
++        MFXUnload(loader);
++
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_create_mfx_session_from_loader(void *ctx, mfxLoader loader, mfxSession *psession)
++{
++    mfxStatus sts;
++    mfxSession session = NULL;
++    uint32_t impl_idx = 0;
++    mfxVersion ver;
++
++    while (1) {
++        /* Enumerate all implementations */
++        mfxImplDescription *impl_desc;
++
++        sts = MFXEnumImplementations(loader, impl_idx,
++                                     MFX_IMPLCAPS_IMPLDESCSTRUCTURE,
++                                     (mfxHDL *)&impl_desc);
++        /* Failed to find an available implementation */
++        if (sts == MFX_ERR_NOT_FOUND)
++            break;
++        else if (sts != MFX_ERR_NONE) {
++            impl_idx++;
++            continue;
++        }
++
++        sts = MFXCreateSession(loader, impl_idx, &session);
++        MFXDispReleaseImplDescription(loader, impl_desc);
++        if (sts == MFX_ERR_NONE)
++            break;
++
++        impl_idx++;
++    }
++
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error creating a MFX session: %d.\n", sts);
++        goto fail;
++    }
++
++    sts = MFXQueryVersion(session, &ver);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error querying a MFX session: %d.\n", sts);
++        goto fail;
++    }
++
++    av_log(ctx, AV_LOG_VERBOSE, "Initialize MFX session: implementation "
++           "version is %d.%d\n", ver.Major, ver.Minor);
++
++    *psession = session;
++
++    return 0;
++
++fail:
++    if (session)
++        MFXClose(session);
++
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_create_mfx_session(void *ctx,
++                                  mfxHDL handle,
++                                  mfxHandleType handle_type,
++                                  mfxIMPL implementation,
++                                  mfxVersion *pver,
++                                  mfxSession *psession,
++                                  void **ploader)
++{
++    mfxLoader loader = NULL;
++
++    av_log(ctx, AV_LOG_VERBOSE,
++           "Use Intel(R) oneVPL to create MFX session, API version is "
++           "%d.%d, the required implementation version is %d.%d\n",
++           MFX_VERSION_MAJOR, MFX_VERSION_MINOR, pver->Major, pver->Minor);
++
++    if (handle_type != MFX_HANDLE_VA_DISPLAY &&
++        handle_type != MFX_HANDLE_D3D9_DEVICE_MANAGER &&
++        handle_type != MFX_HANDLE_D3D11_DEVICE) {
++        av_log(ctx, AV_LOG_ERROR,
++               "Invalid MFX device handle type\n");
++        return AVERROR(EXDEV);
++    }
++
++    *psession = NULL;
++
++    if (!*ploader) {
++        if (qsv_new_mfx_loader(ctx, handle, handle_type, implementation, pver, (void **)&loader))
++            goto fail;
++
++        av_assert0(loader);
++    } else
++        loader = *ploader;      // Use the input mfxLoader to create mfx session
++
++    if (qsv_create_mfx_session_from_loader(ctx, loader, psession))
++        goto fail;
++
++    if (!*ploader)
++        *ploader = loader;
++
++    return 0;
++
++fail:
++    if (!*ploader && loader)
++        MFXUnload(loader);
++
++    return AVERROR_UNKNOWN;
++}
++
++#else
++
++static int qsv_create_mfx_session(void *ctx,
++                                  mfxHDL handle,
++                                  mfxHandleType handle_type,
++                                  mfxIMPL implementation,
++                                  mfxVersion *pver,
++                                  mfxSession *psession,
++                                  void **ploader)
++{
++    mfxVersion ver;
++    mfxStatus sts;
++    mfxSession session = NULL;
++
++    av_log(ctx, AV_LOG_VERBOSE,
++           "Use Intel(R) Media SDK to create MFX session, API version is "
++           "%d.%d, the required implementation version is %d.%d\n",
++           MFX_VERSION_MAJOR, MFX_VERSION_MINOR, pver->Major, pver->Minor);
++
++    *ploader = NULL;
++    *psession = NULL;
++    ver = *pver;
++    sts = MFXInit(implementation, &ver, &session);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error initializing an MFX session: "
++               "%d.\n", sts);
++        goto fail;
++    }
++
++    sts = MFXQueryVersion(session, &ver);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error querying an MFX session: "
++               "%d.\n", sts);
++        goto fail;
++    }
++
++    av_log(ctx, AV_LOG_VERBOSE, "Initialize MFX session: implementation "
++           "version is %d.%d\n", ver.Major, ver.Minor);
++
++    MFXClose(session);
++
++    sts = MFXInit(implementation, &ver, &session);
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error initializing an MFX session: "
++               "%d.\n", sts);
++        goto fail;
++    }
++
++    *psession = session;
++
++    return 0;
++
++fail:
++    if (session)
++        MFXClose(session);
++
++    return AVERROR_UNKNOWN;
++}
++
++#endif
++
+ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+                                      mfxSession *session, int upload)
+ {
+@@ -637,29 +1074,36 @@ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+ 
+     mfxVideoParam par;
+     mfxStatus err;
++    int                   ret = AVERROR_UNKNOWN;
++    AVQSVDeviceContext *hwctx = ctx->device_ctx->hwctx;
++    /* hwctx->loader is non-NULL for oneVPL user and NULL for non-oneVPL user */
++    void             **loader = &hwctx->loader;
+ 
+ #if QSV_HAVE_OPAQUE
+     QSVFramesContext              *s = ctx->internal->priv;
+     opaque = !!(frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
+ #endif
+ 
+-    err = MFXInit(device_priv->impl, &device_priv->ver, session);
+-    if (err != MFX_ERR_NONE) {
+-        av_log(ctx, AV_LOG_ERROR, "Error initializing an internal session\n");
+-        return AVERROR_UNKNOWN;
+-    }
++    ret = qsv_create_mfx_session(ctx, device_priv->handle, device_priv->handle_type,
++                                 device_priv->impl, &device_priv->ver, session, loader);
++    if (ret)
++        goto fail;
+ 
+     if (device_priv->handle) {
+         err = MFXVideoCORE_SetHandle(*session, device_priv->handle_type,
+                                      device_priv->handle);
+-        if (err != MFX_ERR_NONE)
+-            return AVERROR_UNKNOWN;
++        if (err != MFX_ERR_NONE) {
++            ret = AVERROR_UNKNOWN;
++            goto fail;
++        }
+     }
+ 
+     if (!opaque) {
+         err = MFXVideoCORE_SetFrameAllocator(*session, &frame_allocator);
+-        if (err != MFX_ERR_NONE)
+-            return AVERROR_UNKNOWN;
++        if (err != MFX_ERR_NONE) {
++            ret = AVERROR_UNKNOWN;
++            goto fail;
++        }
+     }
+ 
+     memset(&par, 0, sizeof(par));
+@@ -695,11 +1139,20 @@ static int qsv_init_internal_session(AVHWFramesContext *ctx,
+     if (err != MFX_ERR_NONE) {
+         av_log(ctx, AV_LOG_VERBOSE, "Error opening the internal VPP session."
+                "Surface upload/download will not be possible\n");
+-        MFXClose(*session);
+-        *session = NULL;
++
++        ret = AVERROR_UNKNOWN;
++        goto fail;
+     }
+ 
+     return 0;
++
++fail:
++    if (*session)
++        MFXClose(*session);
++
++    *session = NULL;
++
++    return ret;
+ }
+ 
+ static int qsv_frames_init(AVHWFramesContext *ctx)
+@@ -1456,6 +1909,8 @@ static void qsv_device_free(AVHWDeviceContext *ctx)
+     if (hwctx->session)
+         MFXClose(hwctx->session);
+ 
++    if (hwctx->loader)
++        MFXUnload(hwctx->loader);
+     av_buffer_unref(&priv->child_device_ctx);
+     av_freep(&priv);
+ }
+@@ -1545,34 +2000,10 @@ static int qsv_device_derive_from_child(AVHWDeviceContext *ctx,
+         goto fail;
+     }
+ 
+-    err = MFXInit(implementation, &ver, &hwctx->session);
+-    if (err != MFX_ERR_NONE) {
+-        av_log(ctx, AV_LOG_ERROR, "Error initializing an MFX session: "
+-               "%d.\n", err);
+-        ret = AVERROR_UNKNOWN;
+-        goto fail;
+-    }
+-
+-    err = MFXQueryVersion(hwctx->session, &ver);
+-    if (err != MFX_ERR_NONE) {
+-        av_log(ctx, AV_LOG_ERROR, "Error querying an MFX session: %d.\n", err);
+-        ret = AVERROR_UNKNOWN;
+-        goto fail;
+-    }
+-
+-    av_log(ctx, AV_LOG_VERBOSE,
+-           "Initialize MFX session: API version is %d.%d, implementation version is %d.%d\n",
+-           MFX_VERSION_MAJOR, MFX_VERSION_MINOR, ver.Major, ver.Minor);
+-
+-    MFXClose(hwctx->session);
+-
+-    err = MFXInit(implementation, &ver, &hwctx->session);
+-    if (err != MFX_ERR_NONE) {
+-        av_log(ctx, AV_LOG_ERROR,
+-               "Error initializing an MFX session: %d.\n", err);
+-        ret = AVERROR_UNKNOWN;
++    ret = qsv_create_mfx_session(ctx, handle, handle_type, implementation, &ver,
++                                 &hwctx->session, &hwctx->loader);
++    if (ret)
+         goto fail;
+-    }
+ 
+     err = MFXVideoCORE_SetHandle(hwctx->session, handle_type, handle);
+     if (err != MFX_ERR_NONE) {
+@@ -1587,6 +2018,12 @@ static int qsv_device_derive_from_child(AVHWDeviceContext *ctx,
+ fail:
+     if (hwctx->session)
+         MFXClose(hwctx->session);
++
++    if (hwctx->loader)
++        MFXUnload(hwctx->loader);
++
++    hwctx->session = NULL;
++    hwctx->loader = NULL;
+     return ret;
+ }
+ 
+@@ -1629,6 +2066,16 @@ static int qsv_device_create(AVHWDeviceContext *ctx, const char *device,
+         }
+     } else if (CONFIG_VAAPI) {
+         child_device_type = AV_HWDEVICE_TYPE_VAAPI;
++#if QSV_ONEVPL
++    } else if (CONFIG_D3D11VA) {  // Use D3D11 by default if d3d11va is enabled
++        av_log(ctx, AV_LOG_VERBOSE,
++               "Defaulting child_device_type to AV_HWDEVICE_TYPE_D3D11VA for oneVPL."
++               "Please explicitly set child device type via \"-init_hw_device\" "
++               "option if needed.\n");
++        child_device_type = AV_HWDEVICE_TYPE_D3D11VA;
++    } else if (CONFIG_DXVA2) {
++        child_device_type = AV_HWDEVICE_TYPE_DXVA2;
++#else
+     } else if (CONFIG_DXVA2) {
+         av_log(NULL, AV_LOG_WARNING,
+                 "WARNING: defaulting child_device_type to AV_HWDEVICE_TYPE_DXVA2 for compatibility "
+@@ -1637,6 +2084,7 @@ static int qsv_device_create(AVHWDeviceContext *ctx, const char *device,
+         child_device_type = AV_HWDEVICE_TYPE_DXVA2;
+     } else if (CONFIG_D3D11VA) {
+         child_device_type = AV_HWDEVICE_TYPE_D3D11VA;
++#endif
+     } else {
+         av_log(ctx, AV_LOG_ERROR, "No supported child device type is enabled\n");
+         return AVERROR(ENOSYS);
+@@ -1663,6 +2111,13 @@ static int qsv_device_create(AVHWDeviceContext *ctx, const char *device,
+ #endif
+ #if CONFIG_DXVA2
+     case AV_HWDEVICE_TYPE_DXVA2:
++#if QSV_ONEVPL
++        {
++            av_log(ctx, AV_LOG_VERBOSE,
++                   "d3d11va is not available or child device type is set to dxva2 "
++                   "explicitly for oneVPL.\n");
++        }
++#endif
+         break;
+ #endif
+     default:
+
+From patchwork Wed Jul 20 08:40:04 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36865
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255555pzb;
+        Wed, 20 Jul 2022 01:42:11 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1sPxrOiS5NJ2R9HsROD7UCRiURLgP852YTXMbt3q95nMPQwTgqcUWGF8Ca2yMTNBVW4SqD3
+X-Received: by 2002:a17:907:7dac:b0:72e:e75e:62d9 with SMTP id
+ oz44-20020a1709077dac00b0072ee75e62d9mr25605413ejc.627.1658306531624;
+        Wed, 20 Jul 2022 01:42:11 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306531; cv=none;
+        d=google.com; s=arc-20160816;
+        b=VIeaBbcC5+xG+5glqh3rj7GoZBvTY3TYmCdonGtgG6OqP3OTDg/6uFNBf+xLxeXryL
+         cq1GbLYlIGcpXnMQSxAIBcB4CyoRCEEzQjeSG7hOjGYG8w42B0nlfXPyniPUoG2Bi81n
+         hWJiNWWcvuz6Vx+yyhM6AtYPZnJgiFwoNHXwJDqsrY2a8RI6DXgpC7bFvrL/XvURXmxR
+         tmMCmL2pthm3DtSF9rpvLjyoWwJ1lXn+/rJVIkB9tYl4zpTjmcGszVo3Q6L4TWBX1Bh3
+         UCjNf1ygBQoDt3OQgHAr4NMh2bwq+VzCKnZoXhyGT4ywaOdb6la9C8LXrtulCIKD/Jmj
+         a0eA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=dTRbBqmzwyKjIY8K0eeWHGKrt1a3Y83wyNsc0JhltVg=;
+        b=zM/iWLY8YQn+bVfaksXbDfItzxDVkwvDgJECMaMQWNazJEo4SVjs9BYc+TTmC+PJr6
+         sChZ4cwmXtncvQnTn0SxO4kqBVPr7/5HEP2JGAjDJCrs9Mqr7xHquI3KfMGQi156+bVn
+         UMZ5E1vZfUHkUOZ8ODo2pcp5M/FhGcoK/gPRQK38Ee6N27NqcbojIvHPrNxs9mqSnqat
+         B/3JMsSRtMYlMaJ/m9c5RN24FOoKiWJBwmQpWZSEewYbbUJa93mrlTC3uzXox5aDv4d3
+         3wYzCtNzZ5kTId4A3iz/e1jHkHFKadgVbsDoRllgSvz70mV7gpdjAfMpGH8Xn1MhuQ1T
+         ON6Q==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=UxMWssKH;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ g13-20020a056402090d00b0043b753b1e70si8679400edz.514.2022.07.20.01.42.11;
+        Wed, 20 Jul 2022 01:42:11 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=UxMWssKH;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 5FAC668B823;
+	Wed, 20 Jul 2022 11:40:47 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id BE73568B856
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:42 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306443; x=1689842443;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=oSyHAQZC2n3eLSkDGGRrcvnLojmpjfFMPs4NZd15J2Q=;
+ b=UxMWssKH+81VYeahNpO4selBSpRM1e77VsIfDQEx9dGdgtSxbjmRuARw
+ PLL16XZ9ZTXDk+4QKiEb64oCgjG69ag3QbSgaHR/eIRLcZIQjeA3Tkr2Z
+ ibEvf19TWh/yMDmWARB72svTNSOWbz1JdCBrl15jCJ/EpMjO4BkdVAfGj
+ WT5Gv7wqq2EyNhT231NRTd6UmGszdjs9cKBj4MvM39QUAlAUh7WEtcOif
+ CbfvpM3Hr9FHubkkWKvA/o7U1fL09AdFtwP0KItoRUASS+A0uICWXNXkb
+ gvQt3fv+NbwEsjJkw2D5vQslT2PtWDJI/ieHN38XdAeZNqi5g9MB7ST4E Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412558"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412558"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:41 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574717"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:39 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:04 +0800
+Message-Id: <20220720084006.5033-12-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 11/13] lavc/qsv: create mfx session using
+ oneVPL for decoding/encoding
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: h59itQvFBHfA
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+If qsv hwdevice is available, use the mfxLoader handle in qsv hwdevice
+to create mfx session. Otherwise create mfx session with a new mfxLoader
+handle.
+
+This is in preparation for oneVPL support
+---
+ libavcodec/qsv.c          | 226 +++++++++++++++++++++++++++++++++++---
+ libavcodec/qsv_internal.h |   1 +
+ libavcodec/qsvdec.c       |  11 ++
+ libavcodec/qsvenc.h       |   3 +
+ libavcodec/qsvenc_h264.c  |   1 -
+ libavcodec/qsvenc_hevc.c  |   1 -
+ libavcodec/qsvenc_jpeg.c  |   1 -
+ libavcodec/qsvenc_mpeg2.c |   1 -
+ libavcodec/qsvenc_vp9.c   |   1 -
+ 9 files changed, 223 insertions(+), 23 deletions(-)
+
+diff --git a/libavcodec/qsv.c b/libavcodec/qsv.c
+index 432675bccf..fe998c9649 100644
+--- a/libavcodec/qsv.c
++++ b/libavcodec/qsv.c
+@@ -45,6 +45,12 @@
+ #include <mfxplugin.h>
+ #endif
+ 
++#if QSV_ONEVPL
++#include <mfxdispatcher.h>
++#else
++#define MFXUnload(a) do { } while(0)
++#endif
++
+ int ff_qsv_codec_id_to_mfx(enum AVCodecID codec_id)
+ {
+     switch (codec_id) {
+@@ -419,6 +425,193 @@ static int ff_qsv_set_display_handle(AVCodecContext *avctx, QSVSession *qs)
+ }
+ #endif //AVCODEC_QSV_LINUX_SESSION_HANDLE
+ 
++#if QSV_ONEVPL
++static int qsv_new_mfx_loader(AVCodecContext *avctx,
++                              mfxIMPL implementation,
++                              mfxVersion *pver,
++                              void **ploader)
++{
++    mfxStatus sts;
++    mfxLoader loader = NULL;
++    mfxConfig cfg;
++    mfxVariant impl_value;
++
++    loader = MFXLoad();
++    if (!loader) {
++        av_log(avctx, AV_LOG_ERROR, "Error creating a MFX loader\n");
++        goto fail;
++    }
++
++    /* Create configurations for implementation */
++    cfg = MFXCreateConfig(loader);
++    if (!cfg) {
++        av_log(avctx, AV_LOG_ERROR, "Error creating a MFX configurations\n");
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    impl_value.Data.U32 = (implementation == MFX_IMPL_SOFTWARE) ?
++        MFX_IMPL_TYPE_SOFTWARE : MFX_IMPL_TYPE_HARDWARE;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxImplDescription.Impl", impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(avctx, AV_LOG_ERROR, "Error adding a MFX configuration "
++               "property: %d\n", sts);
++        goto fail;
++    }
++
++    impl_value.Type = MFX_VARIANT_TYPE_U32;
++    impl_value.Data.U32 = pver->Version;
++    sts = MFXSetConfigFilterProperty(cfg,
++                                     (const mfxU8 *)"mfxImplDescription.ApiVersion.Version",
++                                     impl_value);
++    if (sts != MFX_ERR_NONE) {
++        av_log(avctx, AV_LOG_ERROR, "Error adding a MFX configuration "
++               "property: %d\n", sts);
++        goto fail;
++    }
++
++    *ploader = loader;
++
++    return 0;
++
++fail:
++    if (loader)
++        MFXUnload(loader);
++
++    *ploader = NULL;
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_create_mfx_session_from_loader(void *ctx, mfxLoader loader, mfxSession *psession)
++{
++    mfxStatus sts;
++    mfxSession session = NULL;
++    uint32_t impl_idx = 0;
++
++    while (1) {
++        /* Enumerate all implementations */
++        mfxImplDescription *impl_desc;
++
++        sts = MFXEnumImplementations(loader, impl_idx,
++                                     MFX_IMPLCAPS_IMPLDESCSTRUCTURE,
++                                     (mfxHDL *)&impl_desc);
++        /* Failed to find an available implementation */
++        if (sts == MFX_ERR_NOT_FOUND)
++            break;
++        else if (sts != MFX_ERR_NONE) {
++            impl_idx++;
++            continue;
++        }
++
++        sts = MFXCreateSession(loader, impl_idx, &session);
++        MFXDispReleaseImplDescription(loader, impl_desc);
++        if (sts == MFX_ERR_NONE)
++            break;
++
++        impl_idx++;
++    }
++
++    if (sts != MFX_ERR_NONE) {
++        av_log(ctx, AV_LOG_ERROR, "Error creating a MFX session: %d.\n", sts);
++        goto fail;
++    }
++
++    *psession = session;
++
++    return 0;
++
++fail:
++    if (session)
++        MFXClose(session);
++
++    *psession = NULL;
++    return AVERROR_UNKNOWN;
++}
++
++static int qsv_create_mfx_session(AVCodecContext *avctx,
++                                  mfxIMPL implementation,
++                                  mfxVersion *pver,
++                                  int gpu_copy,
++                                  mfxSession *psession,
++                                  void **ploader)
++{
++    mfxLoader loader = NULL;
++
++    /* Don't create a new MFX loader if the input loader is valid */
++    if (*ploader == NULL) {
++        av_log(avctx, AV_LOG_VERBOSE,
++               "Use Intel(R) oneVPL to create MFX session, the required "
++               "implementation version is %d.%d\n",
++               pver->Major, pver->Minor);
++
++        if (qsv_new_mfx_loader(avctx, implementation, pver, (void **)&loader))
++            goto fail;
++
++        av_assert0(loader);
++    } else {
++        av_log(avctx, AV_LOG_VERBOSE,
++               "Use Intel(R) oneVPL to create MFX session with the specified MFX loader\n");
++
++        loader = *ploader;
++    }
++
++    if (qsv_create_mfx_session_from_loader(avctx, loader, psession))
++        goto fail;
++
++    if (!*ploader)
++        *ploader = loader;
++
++    return 0;
++
++fail:
++    if (!*ploader && loader)
++        MFXUnload(loader);
++
++    return AVERROR_UNKNOWN;
++}
++
++#else
++
++static int qsv_create_mfx_session(AVCodecContext *avctx,
++                                  mfxIMPL implementation,
++                                  mfxVersion *pver,
++                                  int gpu_copy,
++                                  mfxSession *psession,
++                                  void **ploader)
++{
++    mfxInitParam init_par = { MFX_IMPL_AUTO_ANY };
++    mfxSession session = NULL;
++    mfxStatus sts;
++
++    av_log(avctx, AV_LOG_VERBOSE,
++           "Use Intel(R) Media SDK to create MFX session, the required "
++           "implementation version is %d.%d\n",
++           pver->Major, pver->Minor);
++
++    *psession = NULL;
++    *ploader = NULL;
++
++    init_par.GPUCopy = gpu_copy;
++    init_par.Implementation = implementation;
++    init_par.Version = *pver;
++    sts = MFXInitEx(init_par, &session);
++    if (sts < 0)
++        return ff_qsv_print_error(avctx, sts,
++                                  "Error initializing a MFX session");
++    else if (sts > 0) {
++        ff_qsv_print_warning(avctx, sts,
++                             "Warning in MFX initialization");
++        return AVERROR_UNKNOWN;
++    }
++
++    *psession = session;
++
++    return 0;
++}
++
++#endif
++
+ int ff_qsv_init_internal_session(AVCodecContext *avctx, QSVSession *qs,
+                                  const char *load_plugins, int gpu_copy)
+ {
+@@ -428,18 +621,12 @@ int ff_qsv_init_internal_session(AVCodecContext *avctx, QSVSession *qs,
+     mfxIMPL          impl = MFX_IMPL_AUTO_ANY;
+ #endif
+     mfxVersion        ver = { { QSV_VERSION_MINOR, QSV_VERSION_MAJOR } };
+-    mfxInitParam init_par = { MFX_IMPL_AUTO_ANY };
+ 
+     const char *desc;
+-    int ret;
+-
+-    init_par.GPUCopy        = gpu_copy;
+-    init_par.Implementation = impl;
+-    init_par.Version        = ver;
+-    ret = MFXInitEx(init_par, &qs->session);
+-    if (ret < 0)
+-        return ff_qsv_print_error(avctx, ret,
+-                                  "Error initializing an internal MFX session");
++    int ret = qsv_create_mfx_session(avctx, impl, &ver, gpu_copy, &qs->session,
++                                     &qs->loader);
++    if (ret)
++        return ret;
+ 
+ #ifdef AVCODEC_QSV_LINUX_SESSION_HANDLE
+     ret = ff_qsv_set_display_handle(avctx, qs);
+@@ -743,7 +930,7 @@ int ff_qsv_init_session_device(AVCodecContext *avctx, mfxSession *psession,
+     AVHWDeviceContext    *device_ctx = (AVHWDeviceContext*)device_ref->data;
+     AVQSVDeviceContext *device_hwctx = device_ctx->hwctx;
+     mfxSession        parent_session = device_hwctx->session;
+-    mfxInitParam            init_par = { MFX_IMPL_AUTO_ANY };
++    void                     *loader = device_hwctx->loader;
+     mfxHDL                    handle = NULL;
+     int          hw_handle_supported = 0;
+ 
+@@ -784,13 +971,10 @@ int ff_qsv_init_session_device(AVCodecContext *avctx, mfxSession *psession,
+                "from the session\n");
+     }
+ 
+-    init_par.GPUCopy        = gpu_copy;
+-    init_par.Implementation = impl;
+-    init_par.Version        = ver;
+-    err = MFXInitEx(init_par, &session);
+-    if (err != MFX_ERR_NONE)
+-        return ff_qsv_print_error(avctx, err,
+-                                  "Error initializing a child MFX session");
++    ret = qsv_create_mfx_session(avctx, impl, &ver, gpu_copy, &session,
++                                 &loader);
++    if (ret)
++        return ret;
+ 
+     if (handle) {
+         err = MFXVideoCORE_SetHandle(session, handle_type, handle);
+@@ -869,6 +1053,12 @@ int ff_qsv_close_internal_session(QSVSession *qs)
+         MFXClose(qs->session);
+         qs->session = NULL;
+     }
++
++    if (qs->loader) {
++        MFXUnload(qs->loader);
++        qs->loader = NULL;
++    }
++
+ #ifdef AVCODEC_QSV_LINUX_SESSION_HANDLE
+     av_buffer_unref(&qs->va_device_ref);
+ #endif
+diff --git a/libavcodec/qsv_internal.h b/libavcodec/qsv_internal.h
+index d52f0dcd15..f914956596 100644
+--- a/libavcodec/qsv_internal.h
++++ b/libavcodec/qsv_internal.h
+@@ -103,6 +103,7 @@ typedef struct QSVSession {
+     AVBufferRef *va_device_ref;
+     AVHWDeviceContext *va_device_ctx;
+ #endif
++    void *loader;
+ } QSVSession;
+ 
+ typedef struct QSVFramesContext {
+diff --git a/libavcodec/qsvdec.c b/libavcodec/qsvdec.c
+index 8b718a08ff..89ec5dcee8 100644
+--- a/libavcodec/qsvdec.c
++++ b/libavcodec/qsvdec.c
+@@ -50,6 +50,12 @@
+ #include "qsv.h"
+ #include "qsv_internal.h"
+ 
++#if QSV_ONEVPL
++#include <mfxdispatcher.h>
++#else
++#define MFXUnload(a) do { } while(0)
++#endif
++
+ static const AVRational mfx_tb = { 1, 90000 };
+ 
+ #define PTS_TO_MFX_PTS(pts, pts_tb) ((pts) == AV_NOPTS_VALUE ? \
+@@ -231,6 +237,11 @@ static int qsv_init_session(AVCodecContext *avctx, QSVContext *q, mfxSession ses
+             q->internal_qs.session = NULL;
+         }
+ 
++        if (q->internal_qs.loader) {
++            MFXUnload(q->internal_qs.loader);
++            q->internal_qs.loader = NULL;
++        }
++
+         return AVERROR_EXTERNAL;
+     }
+ 
+diff --git a/libavcodec/qsvenc.h b/libavcodec/qsvenc.h
+index c2def19658..d35a1318f2 100644
+--- a/libavcodec/qsvenc.h
++++ b/libavcodec/qsvenc.h
+@@ -28,6 +28,9 @@
+ 
+ #include <mfxvideo.h>
+ 
++#include "libavutil/common.h"
++#include "libavutil/hwcontext.h"
++#include "libavutil/hwcontext_qsv.h"
+ #include "libavutil/avutil.h"
+ #include "libavutil/fifo.h"
+ 
+diff --git a/libavcodec/qsvenc_h264.c b/libavcodec/qsvenc_h264.c
+index 64c22852d2..ad9cf629df 100644
+--- a/libavcodec/qsvenc_h264.c
++++ b/libavcodec/qsvenc_h264.c
+@@ -32,7 +32,6 @@
+ #include "avcodec.h"
+ #include "codec_internal.h"
+ #include "qsv.h"
+-#include "qsv_internal.h"
+ #include "qsvenc.h"
+ #include "atsc_a53.h"
+ 
+diff --git a/libavcodec/qsvenc_hevc.c b/libavcodec/qsvenc_hevc.c
+index 1d92b8ec13..e11f5dec4a 100644
+--- a/libavcodec/qsvenc_hevc.c
++++ b/libavcodec/qsvenc_hevc.c
+@@ -35,7 +35,6 @@
+ #include "hevcdec.h"
+ #include "h2645_parse.h"
+ #include "qsv.h"
+-#include "qsv_internal.h"
+ #include "qsvenc.h"
+ 
+ enum LoadPlugin {
+diff --git a/libavcodec/qsvenc_jpeg.c b/libavcodec/qsvenc_jpeg.c
+index 582886c7c0..6d17d896eb 100644
+--- a/libavcodec/qsvenc_jpeg.c
++++ b/libavcodec/qsvenc_jpeg.c
+@@ -30,7 +30,6 @@
+ #include "avcodec.h"
+ #include "codec_internal.h"
+ #include "qsv.h"
+-#include "qsv_internal.h"
+ #include "qsvenc.h"
+ 
+ typedef struct QSVMJPEGEncContext {
+diff --git a/libavcodec/qsvenc_mpeg2.c b/libavcodec/qsvenc_mpeg2.c
+index 8ed578c396..5666b3e6e2 100644
+--- a/libavcodec/qsvenc_mpeg2.c
++++ b/libavcodec/qsvenc_mpeg2.c
+@@ -30,7 +30,6 @@
+ #include "avcodec.h"
+ #include "codec_internal.h"
+ #include "qsv.h"
+-#include "qsv_internal.h"
+ #include "qsvenc.h"
+ 
+ typedef struct QSVMpeg2EncContext {
+diff --git a/libavcodec/qsvenc_vp9.c b/libavcodec/qsvenc_vp9.c
+index 7ae392da75..c738da3904 100644
+--- a/libavcodec/qsvenc_vp9.c
++++ b/libavcodec/qsvenc_vp9.c
+@@ -30,7 +30,6 @@
+ #include "avcodec.h"
+ #include "codec_internal.h"
+ #include "qsv.h"
+-#include "qsv_internal.h"
+ #include "qsvenc.h"
+ 
+ typedef struct QSVVP9EncContext {
+
+From patchwork Wed Jul 20 08:40:05 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36866
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255623pzb;
+        Wed, 20 Jul 2022 01:42:21 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1vDCHjARDwJS0fTI1ZiTmxc7tjf5zIOq2NbKVQkAtJ/z8K30d3Z+gfPsT8Wr9LDpvoV0pCn
+X-Received: by 2002:a05:6402:274c:b0:43a:9204:95fb with SMTP id
+ z12-20020a056402274c00b0043a920495fbmr50287447edd.259.1658306541229;
+        Wed, 20 Jul 2022 01:42:21 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306541; cv=none;
+        d=google.com; s=arc-20160816;
+        b=0HuYgldroRwVT598JH1F8tl+3/99+7ssQI0EopkSco89S7+7OvMYw04K8JtJtyrWFV
+         qhZPBbe0tJPZe1yNTMyeIp7RK3UlXjcZziHNL5UhNVKp5jADs8ywIB1aOOwqv0HxbZIC
+         soZWAh8vfeGTR0QcYciRSM5uGdmHyq08HrSBVuoEhM4UU1aLvxh5X8nDV3utRjD2pEZr
+         SNVxcXInnxBs+6Y49QeogC5zp5vZdUv+ErwGPnHfO/R2IENdXdpbVXW2DYZr8qJXtYCk
+         1XvOUFrO9md8pPDUcIbNGvhizCk6ABsDZHMa1bWSWJPuTK7RbqTMvT+XiXDkMguXjdL9
+         /PMA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=u4qOwk32lYrcVieAD2JB5l1qfLD0btKPj+g7zURtKE4=;
+        b=Gk4hvD7aUhgSpMGeVqsiWviqsjKNMbkfLxZEeKhbRMk5BPvyTligP2p8I5JZSLpxXz
+         TXb2+O5mJJcU4QbFVRZSbBacVO0pZifDypgmi8vJFHs2xO/uguCSpvJdYfWb9qQBsBNI
+         6YAUdz5lAKzSApaLSOoof1zLxJzf/ts9WNVjCItET7WEWFgf9gD2BWpucnFz6NBfKzk+
+         Hl19m9GcpeF+opBSe2fNE6Yw9ifh3QmKuvptCV/FBG2X5gzMVKdhrBqwjzo8CANxqhMm
+         +Tc36OjWpGUFaYSeLFL26ErFWIG29ekb/s8y/OFs8rz+QM0PLcAkApeh9h7QzmdxSTRD
+         DNBQ==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=kjWhIjYe;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ sb13-20020a1709076d8d00b0072ac1a55095si17806351ejc.6.2022.07.20.01.42.20;
+        Wed, 20 Jul 2022 01:42:21 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=kjWhIjYe;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 58CB368B8B2;
+	Wed, 20 Jul 2022 11:40:48 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 7A52068B864
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:43 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306443; x=1689842443;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=Nxs9rrCrG3wqHr3V3+jdBIPZLzcb05JL2RA9v5AxCIs=;
+ b=kjWhIjYei0teiSaIYNacyLPSUaPclA377x5Kl4jj9PcgV5Yl+IZyLYaE
+ b1lKweKta7cJ4xLi2j0URGJlWh2JgM9XsA5e1E4P9CWFXMfuOpg6W1Qjd
+ 1JeJQw89ooKt1JmkONrPtkIoc05snnhGo+YLhJR9jYMdFOxmseRu9vQSD
+ xOuTiB3hDdFsrQtdaryD2gWQt2yH5WHgb6+LLtMgIYNeZbfIAUeQQcNmK
+ YSLrToS1QWgaZW+FE25a7ocDfw3BqKV+iyrjS+4OiLbEfA64hjvhjdJgF
+ 1dQRY2ORb9w7mGBi0TTHJ+hLlL0MqDqvrKGTsPbv+D8Xa8bIWyGEvxDTf Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412560"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412560"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:42 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574725"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:41 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:05 +0800
+Message-Id: <20220720084006.5033-13-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 12/13] lavfi/qsv: create mfx session
+ using oneVPL for qsv filters
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: TG4vlelyblXf
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+Use the mfxLoader handle in qsv hwdevice to create mfx session for qsv
+filters.
+
+This is in preparation for oneVPL support
+---
+ libavfilter/qsvvpp.c             | 109 ++++++++++++++++++++++++++++---
+ libavfilter/qsvvpp.h             |   5 ++
+ libavfilter/vf_deinterlace_qsv.c |  13 ++--
+ libavfilter/vf_scale_qsv.c       |  11 ++--
+ 4 files changed, 115 insertions(+), 23 deletions(-)
+
+diff --git a/libavfilter/qsvvpp.c b/libavfilter/qsvvpp.c
+index 3f984fd5f9..5068ce0d5a 100644
+--- a/libavfilter/qsvvpp.c
++++ b/libavfilter/qsvvpp.c
+@@ -23,8 +23,6 @@
+ 
+ #include "libavutil/common.h"
+ #include "libavutil/mathematics.h"
+-#include "libavutil/hwcontext.h"
+-#include "libavutil/hwcontext_qsv.h"
+ #include "libavutil/time.h"
+ #include "libavutil/pixdesc.h"
+ 
+@@ -32,6 +30,12 @@
+ #include "qsvvpp.h"
+ #include "video.h"
+ 
++#if QSV_ONEVPL
++#include <mfxdispatcher.h>
++#else
++#define MFXUnload(a) do { } while(0)
++#endif
++
+ #define IS_VIDEO_MEMORY(mode)  (mode & (MFX_MEMTYPE_VIDEO_MEMORY_DECODER_TARGET | \
+                                         MFX_MEMTYPE_VIDEO_MEMORY_PROCESSOR_TARGET))
+ #if QSV_HAVE_OPAQUE
+@@ -614,13 +618,10 @@ static int init_vpp_session(AVFilterContext *avctx, QSVVPPContext *s)
+     }
+ 
+     /* create a "slave" session with those same properties, to be used for vpp */
+-    ret = MFXInit(impl, &ver, &s->session);
+-    if (ret < 0)
+-        return ff_qsvvpp_print_error(avctx, ret, "Error initializing a session");
+-    else if (ret > 0) {
+-        ff_qsvvpp_print_warning(avctx, ret, "Warning in session initialization");
+-        return AVERROR_UNKNOWN;
+-    }
++    ret = ff_qsvvpp_create_mfx_session(avctx, device_hwctx->loader, impl, &ver,
++                                       &s->session);
++    if (ret)
++        return ret;
+ 
+     if (handle) {
+         ret = MFXVideoCORE_SetHandle(s->session, handle_type, handle);
+@@ -906,3 +907,93 @@ int ff_qsvvpp_filter_frame(QSVVPPContext *s, AVFilterLink *inlink, AVFrame *picr
+ 
+     return 0;
+ }
++
++#if QSV_ONEVPL
++
++int ff_qsvvpp_create_mfx_session(void *ctx,
++                                 void *loader,
++                                 mfxIMPL implementation,
++                                 mfxVersion *pver,
++                                 mfxSession *psession)
++{
++    mfxStatus sts;
++    mfxSession session = NULL;
++    uint32_t impl_idx = 0;
++
++    av_log(ctx, AV_LOG_VERBOSE,
++           "Use Intel(R) oneVPL to create MFX session with the specified MFX loader\n");
++
++    if (!loader) {
++        av_log(ctx, AV_LOG_ERROR, "Invalid MFX Loader handle\n");
++        return AVERROR(EINVAL);
++    }
++
++    while (1) {
++        /* Enumerate all implementations */
++        mfxImplDescription *impl_desc;
++
++        sts = MFXEnumImplementations(loader, impl_idx,
++                                     MFX_IMPLCAPS_IMPLDESCSTRUCTURE,
++                                     (mfxHDL *)&impl_desc);
++        /* Failed to find an available implementation */
++        if (sts == MFX_ERR_NOT_FOUND)
++            break;
++        else if (sts != MFX_ERR_NONE) {
++            impl_idx++;
++            continue;
++        }
++
++        sts = MFXCreateSession(loader, impl_idx, &session);
++        MFXDispReleaseImplDescription(loader, impl_desc);
++        if (sts == MFX_ERR_NONE)
++            break;
++
++        impl_idx++;
++    }
++
++    if (sts < 0)
++        return ff_qsvvpp_print_error(ctx, sts,
++                                     "Error creating a MFX session");
++    else if (sts > 0) {
++        ff_qsvvpp_print_warning(ctx, sts,
++                                "Warning in MFX session creation");
++        return AVERROR_UNKNOWN;
++    }
++
++    *psession = session;
++
++    return 0;
++}
++
++#else
++
++int ff_qsvvpp_create_mfx_session(void *ctx,
++                                 void *loader,
++                                 mfxIMPL implementation,
++                                 mfxVersion *pver,
++                                 mfxSession *psession)
++{
++    mfxSession session = NULL;
++    mfxStatus sts;
++
++    av_log(ctx, AV_LOG_VERBOSE,
++           "Use Intel(R) Media SDK to create MFX session, API version is "
++           "%d.%d, the required implementation version is %d.%d\n",
++           MFX_VERSION_MAJOR, MFX_VERSION_MINOR, pver->Major, pver->Minor);
++
++    *psession = NULL;
++    sts = MFXInit(implementation, pver, &session);
++    if (sts < 0)
++        return ff_qsvvpp_print_error(ctx, sts,
++                                     "Error initializing an MFX session");
++    else if (sts > 0) {
++        ff_qsvvpp_print_warning(ctx, sts, "Warning in MFX session initialization");
++        return AVERROR_UNKNOWN;
++    }
++
++    *psession = session;
++
++    return 0;
++}
++
++#endif
+diff --git a/libavfilter/qsvvpp.h b/libavfilter/qsvvpp.h
+index 3e7d56021b..a8cfcc565a 100644
+--- a/libavfilter/qsvvpp.h
++++ b/libavfilter/qsvvpp.h
+@@ -28,6 +28,8 @@
+ 
+ #include "avfilter.h"
+ #include "libavutil/fifo.h"
++#include "libavutil/hwcontext.h"
++#include "libavutil/hwcontext_qsv.h"
+ 
+ #define FF_INLINK_IDX(link)  ((int)((link)->dstpad - (link)->dst->input_pads))
+ #define FF_OUTLINK_IDX(link) ((int)((link)->srcpad - (link)->src->output_pads))
+@@ -122,4 +124,7 @@ int ff_qsvvpp_print_error(void *log_ctx, mfxStatus err,
+ int ff_qsvvpp_print_warning(void *log_ctx, mfxStatus err,
+                             const char *warning_string);
+ 
++int ff_qsvvpp_create_mfx_session(void *ctx, void *loader, mfxIMPL implementation,
++                                 mfxVersion *pver, mfxSession *psession);
++
+ #endif /* AVFILTER_QSVVPP_H */
+diff --git a/libavfilter/vf_deinterlace_qsv.c b/libavfilter/vf_deinterlace_qsv.c
+index 50f9156d14..3065d6ac95 100644
+--- a/libavfilter/vf_deinterlace_qsv.c
++++ b/libavfilter/vf_deinterlace_qsv.c
+@@ -163,7 +163,7 @@ static int init_out_session(AVFilterContext *ctx)
+     mfxIMPL impl;
+     mfxVideoParam par;
+     mfxStatus err;
+-    int i;
++    int i, ret;
+ 
+ #if QSV_HAVE_OPAQUE
+     opaque = !!(hw_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
+@@ -198,13 +198,10 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+     /* create a "slave" session with those same properties, to be used for
+      * actual deinterlacing */
+-    err = MFXInit(impl, &ver, &s->session);
+-    if (err < 0)
+-        return ff_qsvvpp_print_error(ctx, err, "Error initializing a session for deinterlacing");
+-    else if (err > 0) {
+-        ff_qsvvpp_print_warning(ctx, err, "Warning in session initialization");
+-        return AVERROR_UNKNOWN;
+-    }
++    ret = ff_qsvvpp_create_mfx_session(ctx, device_hwctx->loader, impl, &ver,
++                                       &s->session);
++    if (ret)
++        return ret;
+ 
+     if (handle) {
+         err = MFXVideoCORE_SetHandle(s->session, handle_type, handle);
+diff --git a/libavfilter/vf_scale_qsv.c b/libavfilter/vf_scale_qsv.c
+index fa0152d785..758e730f78 100644
+--- a/libavfilter/vf_scale_qsv.c
++++ b/libavfilter/vf_scale_qsv.c
+@@ -278,7 +278,7 @@ static int init_out_session(AVFilterContext *ctx)
+     mfxIMPL impl;
+     mfxVideoParam par;
+     mfxStatus err;
+-    int i;
++    int i, ret;
+ 
+ #if QSV_HAVE_OPAQUE
+     opaque = !!(in_frames_hwctx->frame_type & MFX_MEMTYPE_OPAQUE_FRAME);
+@@ -315,11 +315,10 @@ static int init_out_session(AVFilterContext *ctx)
+ 
+     /* create a "slave" session with those same properties, to be used for
+      * actual scaling */
+-    err = MFXInit(impl, &ver, &s->session);
+-    if (err != MFX_ERR_NONE) {
+-        av_log(ctx, AV_LOG_ERROR, "Error initializing a session for scaling\n");
+-        return AVERROR_UNKNOWN;
+-    }
++    ret = ff_qsvvpp_create_mfx_session(ctx, device_hwctx->loader, impl, &ver,
++                                       &s->session);
++    if (ret)
++        return ret;
+ 
+     if (handle) {
+         err = MFXVideoCORE_SetHandle(s->session, handle_type, handle);
+
+From patchwork Wed Jul 20 08:40:06 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-Patchwork-Submitter: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+X-Patchwork-Id: 36868
+Delivered-To: ffmpegpatchwork2@gmail.com
+Received: by 2002:a05:6a21:1649:b0:8b:613a:194d with SMTP id no9csp2255733pzb;
+        Wed, 20 Jul 2022 01:42:39 -0700 (PDT)
+X-Google-Smtp-Source: 
+ AGRyM1tKDlZIQoPyFNoskBa+k27f0QRFjn52HVmcm8RFOEFBiPklbuE612MTW5JuPV3YeFp+MdB1
+X-Received: by 2002:aa7:d389:0:b0:43a:56c0:c863 with SMTP id
+ x9-20020aa7d389000000b0043a56c0c863mr49104643edq.373.1658306559460;
+        Wed, 20 Jul 2022 01:42:39 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1658306559; cv=none;
+        d=google.com; s=arc-20160816;
+        b=ewDsTvsF/S3H6Y6y1qRn/t+T9j6QSJZK/INaV294CnW/A+L2i9Mq3qYe69Ukn/t+/y
+         29XqVnmxOvdzdIkpLSAtSImwefGjK2QVefIw8Oc++EbBKYP6GOu+FXtEUClYzO1ILtsP
+         GLo4fHM67JSBoSDX6v2BFwjpMaEVp5awUHfotRPuqxS4wmibdb67k1wxFdvpkWiBomlh
+         KtuH3vy3HbZbLjpU5SJggqoAwGikFpbpPsDqseYS3AWrLyrVU0O5lcowGl7J9Uzesb3K
+         TVpSFNQ3PG3y9q0Icyo1l4gLaH7F/7F3OTSdRtppX2X1MDMVqxNiH4gsr1QYDM1G8I4T
+         qYHw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com;
+ s=arc-20160816;
+        h=sender:errors-to:content-transfer-encoding:mime-version:cc:reply-to
+         :list-subscribe:list-help:list-post:list-archive:list-unsubscribe
+         :list-id:precedence:subject:references:in-reply-to:message-id:date
+         :to:from:dkim-signature:delivered-to;
+        bh=+09KR9dIMl9+9WweR+bPJ2OWTydKPhd4kXFAdB+FA/k=;
+        b=DLWzE31KhXf66Lw8lTAjhHpVzrYr6qOu/hIzInTOITEekjXO3qVjLKjqRCjPck8LPj
+         FjHXkaV9ledLeGJuAAAImKmT/FTlYaJ73dC9W+6lxql2ScTYyk46I5l3n5xKzALEuw57
+         lqSSJcqUIv7ex/pphTc8LyDDBdyUOQuI3tzd/GPMEU3DX/k9fOghgpRVdpOgyuYIvmk6
+         Ej8cQnGs3Zz/BlV1MDIbMN7vZMJ/Ym4q5lodJn+zxUiBMZN8CBIxmX2vOwPZcmefQCmy
+         Y9uIvNPXzMS96jmuGpm12ZoSq48YOIdhLiQeZYB9bMODn/AdZCvG6efEn1PYWzFdvrCX
+         Cilg==
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=YEaGITS9;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Return-Path: <ffmpeg-devel-bounces@ffmpeg.org>
+Received: from ffbox0-bg.mplayerhq.hu (ffbox0-bg.ffmpeg.org. [79.124.17.100])
+        by mx.google.com with ESMTP id
+ bt13-20020a0564020a4d00b0043acee93208si20980920edb.319.2022.07.20.01.42.38;
+        Wed, 20 Jul 2022 01:42:39 -0700 (PDT)
+Received-SPF: pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender) client-ip=79.124.17.100;
+Authentication-Results: mx.google.com;
+       dkim=neutral (body hash did not verify) header.i=@intel.com
+ header.s=Intel header.b=YEaGITS9;
+       spf=pass (google.com: domain of ffmpeg-devel-bounces@ffmpeg.org
+ designates 79.124.17.100 as permitted sender)
+ smtp.mailfrom=ffmpeg-devel-bounces@ffmpeg.org
+Received: from [127.0.1.1] (localhost [127.0.0.1])
+	by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTP id 5AC4868B8C4;
+	Wed, 20 Jul 2022 11:40:50 +0300 (EEST)
+X-Original-To: ffmpeg-devel@ffmpeg.org
+Delivered-To: ffmpeg-devel@ffmpeg.org
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+ by ffbox0-bg.mplayerhq.hu (Postfix) with ESMTPS id 48D8B68B890
+ for <ffmpeg-devel@ffmpeg.org>; Wed, 20 Jul 2022 11:40:45 +0300 (EEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+ d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+ t=1658306445; x=1689842445;
+ h=from:to:cc:subject:date:message-id:in-reply-to: references;
+ bh=D4Vx60GOu2Nm6PMzbffbRqH7pCIiIlF+CfbKlyn2R4w=;
+ b=YEaGITS9IEXkYRnvGkLtauq1WzjL24i4wG/yVO3wHWD6GP8XjdlYx/j1
+ crzxZwOIIGXchO0+wAq5yKWCetyo/MTEYS6DSfl2c44T0604dMtZy0rKm
+ XLkqKS5PdGslUXOpF+BGsrA1vVjj0+HUskg1Y4NtC3UFoPkNlPTaTD65Y
+ 8qw6p7PkUTHdJ5Flp0bBKXY0EveR0orWvRxK4JMTWrHBmTVVE/R/g89bx
+ iF3eM4h/ibg+wiqiqUOQIPVydUiZZA9fVbQOVTUzVQ/qqbAAhd9VjetoL
+ mWjli2sPbJ3TxTAplATpO5Nw41qT4Yrh1PuH1BJko6/pq62zGbkBH9EYK g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10413"; a="348412566"
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="348412566"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+ by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:44 -0700
+X-IronPort-AV: E=Sophos;i="5.92,286,1650956400"; d="scan'208";a="625574729"
+Received: from xhh-dg164.sh.intel.com ([10.238.5.169])
+ by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384;
+ 20 Jul 2022 01:40:42 -0700
+From: "Xiang, Haihao" <haihao.xiang-at-intel.com@ffmpeg.org>
+To: ffmpeg-devel@ffmpeg.org
+Date: Wed, 20 Jul 2022 16:40:06 +0800
+Message-Id: <20220720084006.5033-14-haihao.xiang@intel.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20220720084006.5033-1-haihao.xiang@intel.com>
+References: <20220720084006.5033-1-haihao.xiang@intel.com>
+Subject: [FFmpeg-devel] [PATCH v11 13/13] configure: add --enable-libvpl
+ option
+X-BeenThere: ffmpeg-devel@ffmpeg.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: FFmpeg development discussions and patches <ffmpeg-devel.ffmpeg.org>
+List-Unsubscribe: <https://ffmpeg.org/mailman/options/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=unsubscribe>
+List-Archive: <https://ffmpeg.org/pipermail/ffmpeg-devel>
+List-Post: <mailto:ffmpeg-devel@ffmpeg.org>
+List-Help: <mailto:ffmpeg-devel-request@ffmpeg.org?subject=help>
+List-Subscribe: <https://ffmpeg.org/mailman/listinfo/ffmpeg-devel>,
+ <mailto:ffmpeg-devel-request@ffmpeg.org?subject=subscribe>
+Reply-To: FFmpeg development discussions and patches <ffmpeg-devel@ffmpeg.org>
+Cc: Haihao Xiang <haihao.xiang@intel.com>
+MIME-Version: 1.0
+Errors-To: ffmpeg-devel-bounces@ffmpeg.org
+Sender: "ffmpeg-devel" <ffmpeg-devel-bounces@ffmpeg.org>
+X-TUID: zNRfwBHC3hn/
+
+From: Haihao Xiang <haihao.xiang@intel.com>
+
+This allows user to build FFmpeg against Intel oneVPL. oneVPL 2.6
+is the required minimum version when building Intel oneVPL code.
+
+It will fail to run configure script if both libmfx and libvpl are
+enabled.
+
+It is recommended to use oneVPL for new work, even for currently available
+hardwares [1]
+
+Note the preferred child device type is d3d11va for libvpl on Windows.
+The commands below will use d3d11va if d3d11va is available on Windows.
+$ ffmpeg -hwaccel qsv -c:v h264_qsv ...
+$ ffmpeg -qsv_device 0 -hwaccel qsv -c:v h264_qsv ...
+$ ffmpeg -init_hw_device qsv=qsv:hw_any -hwaccel qsv -c:v h264_qsv ...
+$ ffmpeg -init_hw_device qsv=qsv:hw_any,child_device=0 -hwaccel qsv -c:v h264_qsv ...
+
+User may use child_device_type option to specify child device type to
+dxva2 or derive a qsv device from a dxva2 device
+$ ffmpeg -init_hw_device qsv=qsv:hw_any,child_device=0,child_device_type=dxva2 -hwaccel qsv -c:v h264_qsv ...
+$ ffmpeg -init_hw_device dxva2=d3d9:0 -init_hw_device qsv=qsv@d3d9 -hwaccel qsv -c:v h264_qsv ...
+
+[1] https://www.intel.com/content/www/us/en/develop/documentation/upgrading-from-msdk-to-onevpl/top.html
+---
+ configure | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/configure b/configure
+index 23ae3eaf7e..23a495f045 100755
+--- a/configure
++++ b/configure
+@@ -341,6 +341,7 @@ External library support:
+   --disable-ffnvcodec      disable dynamically linked Nvidia code [autodetect]
+   --enable-libdrm          enable DRM code (Linux) [no]
+   --enable-libmfx          enable Intel MediaSDK (AKA Quick Sync Video) code via libmfx [no]
++  --enable-libvpl          enable Intel oneVPL code via libvpl if libmfx is not used [no]
+   --enable-libnpp          enable Nvidia Performance Primitives-based code [no]
+   --enable-mmal            enable Broadcom Multi-Media Abstraction Layer (Raspberry Pi) via MMAL [no]
+   --disable-nvdec          disable Nvidia video decoding acceleration (via hwaccel) [autodetect]
+@@ -1921,6 +1922,7 @@ HWACCEL_LIBRARY_NONFREE_LIST="
+ HWACCEL_LIBRARY_LIST="
+     $HWACCEL_LIBRARY_NONFREE_LIST
+     libmfx
++    libvpl
+     mmal
+     omx
+     opencl
+@@ -6574,23 +6576,36 @@ enabled libjxl            && require_pkg_config libjxl "libjxl >= 0.7.0" jxl/dec
+ enabled libklvanc         && require libklvanc libklvanc/vanc.h klvanc_context_create -lklvanc
+ enabled libkvazaar        && require_pkg_config libkvazaar "kvazaar >= 0.8.1" kvazaar.h kvz_api_get
+ enabled liblensfun        && require_pkg_config liblensfun lensfun lensfun.h lf_db_new
++
++if enabled libmfx && enabled libvpl; then
++   die "ERROR: can not use libmfx and libvpl together"
+ # While it may appear that require is being used as a pkg-config
+ # fallback for libmfx, it is actually being used to detect a different
+ # installation route altogether.  If libmfx is installed via the Intel
+ # Media SDK or Intel Media Server Studio, these don't come with
+ # pkg-config support.  Instead, users should make sure that the build
+ # can find the libraries and headers through other means.
+-enabled libmfx            && { { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfxvideo.h" MFXInit ||
++elif enabled libmfx; then
++    { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfxvideo.h" MFXInit ||
+ # Some old versions of libmfx have the following settings in libmfx.pc:
+ #   includedir=/usr/include
+ #   Cflags: -I${includedir}
+ # So add -I${includedir}/mfx to CFLAGS
+-                                 { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfx/mfxvideo.h" MFXInit && add_cflags -I${libmfx_incdir}/mfx; } ||
+-                                 { require libmfx "mfxvideo.h mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
+-                                   { test_cpp_condition mfxdefs.h "MFX_VERSION >= 1028 && MFX_VERSION < 2000" || die "ERROR: libmfx version must be >= 1.28 and < 2.0"; }  &&
+-                                     warn "using libmfx without pkg-config"; } } &&
+-                               warn "build FFmpeg against libmfx 1.x, obsolete features of libmfx such as OPAQUE memory,\n"\
+-                                    "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"; }
++      { check_pkg_config libmfx "libmfx >= 1.28 libmfx < 2.0" "mfx/mfxvideo.h" MFXInit && add_cflags -I${libmfx_incdir}/mfx; } ||
++      { require libmfx "mfxvideo.h mfxdefs.h" MFXInit "-llibmfx $advapi32_extralibs" &&
++        { test_cpp_condition mfxdefs.h "MFX_VERSION >= 1028 && MFX_VERSION < 2000" || die "ERROR: libmfx version must be >= 1.28 and < 2.0"; }  &&
++        warn "using libmfx without pkg-config"; } } &&
++    warn "build FFmpeg against libmfx 1.x, obsolete features of libmfx such as OPAQUE memory,\n"\
++         "multi-frame encode, user plugins and LA_EXT rate control mode are enabled"
++elif enabled libvpl; then
++# Consider pkg-config only. The name of libmfx is still passed to check_pkg_config function for --enable-libvpl option
++# because QSV has dependency on libmfx, we can use the same dependency if using libmfx in this check. The package name
++# is extracted from "vpl >= 2.6"
++    check_pkg_config libmfx "vpl >= 2.6" "mfxvideo.h mfxdispatcher.h" MFXLoad && \
++        warn "build FFmpeg against oneVPL 2.6+, OPAQUE memory, multi-frame encode, user plugins\n"\
++             "and LA_EXT rate control mode in FFmpeg QSV won't be supported." ||
++            die "ERROR: libvpl >= 2.6 not found"
++fi
+ 
+ if enabled libmfx; then
+    check_cc MFX_CODEC_VP9 "mfxdefs.h mfxstructures.h" "MFX_CODEC_VP9"
